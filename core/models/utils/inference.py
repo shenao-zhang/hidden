@@ -107,7 +107,6 @@ def batch_forward(
         batch_inputs = nested_apply(batch_inputs, lambda t: t.to(device))
 
         with torch.no_grad():
-            print(model.device), print(batch_inputs.device)
             out = model(**batch_inputs, **forward_kwargs)
             output_class = out.__class__
             out = nested_apply(out, lambda t: t.cpu())
