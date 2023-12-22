@@ -18,7 +18,7 @@ from core.models.llm_loading import load_model_and_tokenizer
 from core.models.utils.inference import hidden_to_logits
 from core.analysis.utils import logits_top_tokens
 from core.analysis.evaluation import calculate_accuracy_on_datasets
-from core.task_vectors import run_icl, run_task_vector
+from core.task_vectors import run_icl, run_task_vector, run_stack_task_vector
 from core.utils.misc import limit_gpus, seed_everything
 from core.experiments_config import MODELS_TO_EVALUATE, TASKS_TO_EVALUATE
 
