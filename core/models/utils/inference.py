@@ -109,7 +109,7 @@ def batch_forward(
         with torch.no_grad():
             out = model(**batch_inputs, **forward_kwargs)
             output_class = out.__class__
-            out = nested_apply(out, lambda t: t.to(device))
+            out = nested_apply(out, lambda t: t.cpu())
         outputs.append(out)
 
     return output_class(**nested_concat(outputs))
