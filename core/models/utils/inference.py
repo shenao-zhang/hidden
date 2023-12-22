@@ -109,7 +109,7 @@ def batch_forward(
         with torch.no_grad():
             out = model(**batch_inputs, **forward_kwargs)
             output_class = out.__class__
-            out = nested_apply(out, lambda t: t.cpu())
+            out = nested_apply(out, lambda t: t.to(device))
         outputs.append(out)
 
     return output_class(**nested_concat(outputs))
@@ -202,7 +202,7 @@ def hidden_to_logits(model: PreTrainedModel, hidden: torch.Tensor) -> torch.Tens
     hidden = hidden.type(lm_pipeline.parameters().__next__().dtype)
 
     with torch.no_grad():
-        logits = lm_pipeline(hidden).cpu()
+        logits = lm_pipeline(hidden).to(device)
 
     return logits
 
