@@ -109,7 +109,7 @@ def batch_forward(
         with torch.no_grad():
             out = model(**batch_inputs, **forward_kwargs)
             output_class = out.__class__
-            out = nested_apply(out, lambda t: t.cpu())
+        #    out = nested_apply(out, lambda t: t.cpu())
         outputs.append(out)
 
     return output_class(**nested_concat(outputs))
@@ -150,7 +150,7 @@ def batch_generate(
 
     generate_ids = []
     for batch_inputs in batches:
-        batch_inputs = nested_apply(batch_inputs, lambda t: t.to(device))
+        batch_inputs = nested_apply(batch_inputs, lambda t: t.to("cpu"))
 
         batch_ids = model.generate(
             **batch_inputs,
