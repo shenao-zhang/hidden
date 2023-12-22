@@ -150,7 +150,7 @@ def batch_generate(
 
     generate_ids = []
     for batch_inputs in batches:
-        batch_inputs = nested_apply(batch_inputs, lambda t: t.to("cpu"))
+        batch_inputs = nested_apply(batch_inputs, lambda t: t.to(device))
 
         batch_ids = model.generate(
             **batch_inputs,
