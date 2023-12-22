@@ -27,7 +27,7 @@ def get_results_file_path(model_type: str, model_variant: str, experiment_id: st
     return os.path.join(main_experiment_results_dir(experiment_id), f"{model_type}_{model_variant}.pkl")
 
 
-def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_name: str, num_examples: int) -> None:
+def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_name: str, num_examples: int):
     seed_everything(41)
     accuracies = {}
 
@@ -45,7 +45,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
     test_datasets = task.create_datasets(num_datasets=num_test_datasets, num_examples=num_examples)
     dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
     icl_predictions = run_icl(model, tokenizer, task, test_datasets)
-    tv_predictions, tv_dev_accuracy_by_layer, task_hiddens = run_task_vector(
+    tv_predictions, tv_predictions_stack, tv_dev_accuracy_by_layer, task_hiddens = run_stack_task_vector(
         model,
         tokenizer,
         task,
@@ -55,6 +55,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
     accuracies["tv_dev_by_layer"] = tv_dev_accuracy_by_layer
     accuracies["icl"] = calculate_accuracy_on_datasets(task, icl_predictions, test_datasets)
     accuracies["tv"] = calculate_accuracy_on_datasets(task, tv_predictions, test_datasets)
+    accuracies["tv_stack"] = calculate_accuracy_on_datasets(task, tv_predictions_stack, test_datasets)
 
     tv_ordered_tokens_by_layer = {}
     try:
@@ -113,6 +114,8 @@ def run_main_experiment(
         print(f"Baseline Accuracy: {accuracies['baseline']:.2f}")
         print(f"ICL Accuracy: {accuracies['icl']:.2f}")
         print(f"Task Vector Accuracy: {accuracies['tv']:.2f}")
+        print(f"Stack Task Vector Accuracy: {accuracies['tv_stack']:.2f}")
+
         print(f"Dev Accuracy by layer: ", end="")
         for layer, accuracy in accuracies["tv_dev_by_layer"].items():
             print(f"{layer}: {accuracy:.2f}, ", end="")

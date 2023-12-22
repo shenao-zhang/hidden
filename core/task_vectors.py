@@ -68,6 +68,47 @@ def run_task_vector(
     return predictions, dev_accuracy_by_layer, task_hiddens
 
 
+def run_stack_task_vector(
+    model: PreTrainedModel,
+    tokenizer: PreTrainedTokenizer,
+    task: Task,
+    test_datasets: List[FewShotDataset],
+    dev_datasets: List[FewShotDataset],
+    layers_to_test: Optional[Iterable[int]] = None,
+    multi_context: bool = False,
+):
+    dev_accuracy_by_layer = task_vector_accuracy_by_layer(
+        model,
+        tokenizer,
+        task,
+        dev_datasets,
+        layers_to_test=layers_to_test,
+        multi_context=multi_context,
+    )
+    best_intermediate_layer = int(max(dev_accuracy_by_layer, key=dev_accuracy_by_layer.get))
+
+    task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context)
+    predictions = modulated_generate(
+        model,
+        tokenizer,
+        task,
+        test_datasets,
+        task_hiddens=task_hiddens,
+        intermediate_layer=best_intermediate_layer,
+    )
+
+    predictions_stack = modulated_generate(
+        model,
+        tokenizer,
+        task,
+        test_datasets,
+        task_hiddens=task_hiddens,
+        intermediate_layer=best_intermediate_layer,
+        include_train=True
+    )
+
+    return predictions, predictions_stack, dev_accuracy_by_layer, task_hiddens
+
 def run_overriding_task_vector(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
