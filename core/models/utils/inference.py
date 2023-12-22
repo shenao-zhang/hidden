@@ -202,7 +202,7 @@ def hidden_to_logits(model: PreTrainedModel, hidden: torch.Tensor) -> torch.Tens
     hidden = hidden.type(lm_pipeline.parameters().__next__().dtype)
 
     with torch.no_grad():
-        logits = lm_pipeline(hidden).to(device)
+        logits = lm_pipeline(hidden).cpu()
 
     return logits
 
