@@ -189,7 +189,7 @@ def get_single_context_task_hiddens(
     ]
 
     inputs = tokenize_datasets(tokenizer, new_datasets)
-
+    print('input: ', inputs.size())
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs)
 
