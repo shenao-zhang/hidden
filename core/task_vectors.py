@@ -76,6 +76,7 @@ def run_stack_task_vector(
     dev_datasets: List[FewShotDataset],
     layers_to_test: Optional[Iterable[int]] = None,
     multi_context: bool = False,
+    num_datasets: int = 1,
     num_examples: int = 1,
 ):
     dev_accuracy_by_layer = task_vector_accuracy_by_layer(
@@ -99,7 +100,7 @@ def run_stack_task_vector(
     )
 
     # stack LLMs
-    new_test_datasets = task.create_datasets(num_datasets=1, num_examples=num_examples)
+    new_test_datasets = task.create_datasets(num_datasets=num_datasets, num_examples=num_examples)
     predictions_stack = modulated_generate(
         model,
         tokenizer,

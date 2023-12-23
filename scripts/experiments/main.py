@@ -52,6 +52,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
         task,
         test_datasets,
         dev_datasets,
+        num_datasets=num_test_datasets,
         num_examples=num_examples
     )
     accuracies["tv_dev_by_layer"] = tv_dev_accuracy_by_layer
