@@ -104,8 +104,8 @@ def run_stack_task_vector(
     new_ins = []
     new_outs = []
     for idx, dataset in enumerate(test_datasets):
-        print('debug', dataset)
-        new_in = task.sample_inputs(num_examples)#, exclude=(dataset.train_inputs,))
+        exclude_samples = [dataset.test_input] + dataset.train_inputs
+        new_in = task.sample_inputs(num_examples, exclude=exclude_samples)
         new_ins.append(new_in)
         new_out = [task.calc_output(x) for x in new_in]
         new_outs.append(new_out)
