@@ -101,11 +101,11 @@ def run_stack_task_vector(
 
     # stack LLMs
   #  new_test_datasets = task.create_datasets(num_datasets=num_datasets, num_examples=num_examples)
-    assert len(test_datasets) == num_datasets
     new_ins = []
     new_outs = []
-    for idx in range(num_datasets):
-        new_in = task.sample_inputs(num_examples, exclude=(test_datasets[idx].train_inputs,))
+    for idx, dataset in enumerate(test_datasets):
+        print('debug', dataset)
+        new_in = task.sample_inputs(num_examples, exclude=(dataset.train_inputs,))
         new_ins.append(new_in)
         new_outs.append(task.calc_output(new_in))
     new_test_datasets = [
