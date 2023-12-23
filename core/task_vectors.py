@@ -105,8 +105,8 @@ def run_stack_task_vector(
         model,
         tokenizer,
         task,
-      #  new_test_datasets,
-        test_datasets,
+        new_test_datasets,
+      #  test_datasets,
         task_hiddens=task_hiddens,
         intermediate_layer=best_intermediate_layer,
         include_train=True
