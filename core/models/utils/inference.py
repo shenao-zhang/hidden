@@ -99,12 +99,12 @@ def batch_forward(
     forward_kwargs = _get_forward_kwargs(forward_kwargs)
 
     batches = _get_batches(inputs, batch_size, show_progress=show_progress)
-    print('batches: ', batches.size())
     device = model.device
 
     outputs = []
     for batch_inputs in batches:
         batch_inputs = nested_apply(batch_inputs, lambda t: t.to(device))
+        print('batches: ', batch_inputs.size())
 
         with torch.no_grad():
             out = model(**batch_inputs, **forward_kwargs)
