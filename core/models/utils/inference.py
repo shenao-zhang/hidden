@@ -99,7 +99,7 @@ def batch_forward(
     forward_kwargs = _get_forward_kwargs(forward_kwargs)
 
     batches = _get_batches(inputs, batch_size, show_progress=show_progress)
-
+    print('batches: ', batches.size())
     device = model.device
 
     outputs = []
