@@ -24,7 +24,7 @@ TASKS_TO_EVALUATE = [
     "algorithmic_to_lower",
 ]
 
-MODELS_TO_EVALUATE = [("llama", "13B")]
+MODELS_TO_EVALUATE = [("pythia", "2.8B"), ("gpt-j", "6B"), ("pythia", "6.9B")]
 
 MODELS_TO_EVALUATE_A = [
     # ("gpt-2", "1.5B"),

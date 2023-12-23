@@ -97,6 +97,7 @@ def run_stack_task_vector(
         intermediate_layer=best_intermediate_layer,
     )
 
+    # stack LLMs
     predictions_stack = modulated_generate(
         model,
         tokenizer,
@@ -106,6 +107,8 @@ def run_stack_task_vector(
         intermediate_layer=best_intermediate_layer,
         include_train=True
     )
+    task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context, multi_stack=True, prev_hiddens=TODO)
+
 
     return predictions, predictions_stack, dev_accuracy_by_layer, task_hiddens
 
@@ -167,7 +170,6 @@ def get_multi_context_task_hiddens(
 
     return task_hiddens  # (num_datasets, num_layers, hidden_size)
 
-
 def get_single_context_task_hiddens(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
@@ -199,6 +201,52 @@ def get_single_context_task_hiddens(
 
     return task_hiddens  # (num_datasets, num_layers, hidden_size)
 
+def stack_get_single_context_task_hiddens(
+    model: PreTrainedModel,
+    tokenizer: PreTrainedTokenizer,
+    task: Task,
+    datasets: List[FewShotDataset],
+    prev_hiddens,
+    intermediate_layer: Union[int, torch.Tensor] = 2,  # TODO
+    num_test_inputs_to_avg: int = 2,
+) -> torch.Tensor:
+    new_datasets = [
+        FewShotDataset(
+            train_inputs=dataset.train_inputs,
+            train_outputs=dataset.train_outputs,
+            test_input=test_input,
+            test_output=task.calc_output(test_input),
+        )
+        for dataset in datasets
+        for test_input in task.sample_inputs(num_test_inputs_to_avg, exclude=(dataset.test_input,))
+    ]
+
+    inputs = tokenize_datasets(tokenizer, new_datasets)
+
+    # Stack hidden states
+    if isinstance(intermediate_layer, int):
+        intermediate_layer = torch.tensor(intermediate_layer).repeat(len(inputs["input_ids"]))
+    injection_positions = -1 * torch.ones_like(intermediate_layer, dtype=torch.long)
+    prev_hiddens = prev_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
+    forward_modifiers = [
+        HiddenInjector(
+            model,
+            injection_layers=intermediate_layer,
+            injection_positions=injection_positions,
+            hiddens_to_inject=prev_hiddens,
+        )
+    ]
+    # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
+    outputs, forward_trace = traced_forward(model, inputs=inputs, forward_modifiers=forward_modifiers)
+
+    task_hiddens = forward_trace.residual_stream.hidden[:, :, -1, :]
+    _, num_layers, hidden_size = task_hiddens.shape
+    task_hiddens = task_hiddens.view(len(datasets), num_test_inputs_to_avg, num_layers, hidden_size).mean(dim=1)
+
+    task_hiddens = task_hiddens[:, 1:]  # the first one is the embedding layer
+
+    return task_hiddens  # (num_datasets, num_layers, hidden_size)
+
 
 def get_task_hiddens(
     model: PreTrainedModel,
@@ -206,7 +254,11 @@ def get_task_hiddens(
     task: Task,
     datasets: List[FewShotDataset],
     multi_context: bool = False,
+    multi_stack: bool = False,
+    prev_hiddens=None
 ) -> torch.Tensor:
+    if multi_stack:
+        return stack_get_single_context_task_hiddens(model, tokenizer, task, datasets, prev_hiddens=prev_hiddens) # TODO
     if multi_context:
         return get_multi_context_task_hiddens(model, tokenizer, task, datasets)
     else:
