@@ -104,7 +104,7 @@ def batch_forward(
     outputs = []
     for batch_inputs in batches:
         batch_inputs = nested_apply(batch_inputs, lambda t: t.to(device))
-        print('batches: ', batch_inputs.size())
+        print('batches: ', batch_inputs)
 
         with torch.no_grad():
             out = model(**batch_inputs, **forward_kwargs)
