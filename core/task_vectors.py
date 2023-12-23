@@ -105,13 +105,13 @@ def run_stack_task_vector(
         model,
         tokenizer,
         task,
-        new_test_datasets,
-      #  test_datasets,
+      #  new_test_datasets,
+        test_datasets,
         task_hiddens=task_hiddens,
         intermediate_layer=best_intermediate_layer,
         include_train=True
     )
- #   task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context, multi_stack=False)#True, prev_hiddens=)
+    task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context, multi_stack=False)#True, prev_hiddens=)
 
 
     return predictions, predictions_stack, dev_accuracy_by_layer, task_hiddens
