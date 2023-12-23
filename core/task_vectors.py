@@ -76,6 +76,7 @@ def run_stack_task_vector(
     dev_datasets: List[FewShotDataset],
     layers_to_test: Optional[Iterable[int]] = None,
     multi_context: bool = False,
+    num_examples: int = 1,
 ):
     dev_accuracy_by_layer = task_vector_accuracy_by_layer(
         model,
@@ -98,16 +99,18 @@ def run_stack_task_vector(
     )
 
     # stack LLMs
+    new_test_datasets = task.create_datasets(num_datasets=1, num_examples=num_examples)
     predictions_stack = modulated_generate(
         model,
         tokenizer,
         task,
-        test_datasets,
+        new_test_datasets,
+      #  test_datasets,
         task_hiddens=task_hiddens,
         intermediate_layer=best_intermediate_layer,
         include_train=True
     )
-    task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context, multi_stack=True, prev_hiddens=TODO)
+    task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context, multi_stack=False)#True, prev_hiddens=)
 
 
     return predictions, predictions_stack, dev_accuracy_by_layer, task_hiddens
@@ -223,6 +226,7 @@ def stack_get_single_context_task_hiddens(
     inputs = tokenize_datasets(tokenizer, new_datasets)
 
     # Stack hidden states
+    input_dummy = tokenize_datasets(tokenizer, new_datasets, format_dataset_kwargs={"include_test": False})
     if isinstance(intermediate_layer, int):
         intermediate_layer = torch.tensor(intermediate_layer).repeat(len(inputs["input_ids"]))
     injection_positions = -1 * torch.ones_like(intermediate_layer, dtype=torch.long)
