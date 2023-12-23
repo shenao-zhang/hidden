@@ -180,7 +180,7 @@ def decode_predictions(
 
 
 def tokenize_prompts(tokenizer: PreTrainedTokenizer, prompts: List[str]) -> torch.Tensor:
-    return tokenizer(prompts, return_tensors="pt", padding=False, return_token_type_ids=False)
+    return tokenizer(prompts, return_tensors="pt", padding=True, return_token_type_ids=False)
 
 
 def tokenize_datasets(
