@@ -268,7 +268,7 @@ def stack_get_single_context_task_hiddens(
 
     # Stack hidden states
     if isinstance(intermediate_layer, int):
-        intermediate_layer = torch.tensor(intermediate_layer).repeat(25)
+        intermediate_layer = torch.tensor(intermediate_layer).repeat(50)
     injection_positions = torch.zeros_like(intermediate_layer, dtype=torch.long)  # -1
     print(intermediate_layer.shape, prev_hiddens.shape)
     prev_hiddens = prev_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
@@ -352,7 +352,6 @@ def modulated_forward(
         intermediate_layer = torch.tensor(intermediate_layer).repeat(len(inputs["input_ids"]))
     injection_positions = -1 * torch.ones_like(intermediate_layer, dtype=torch.long)
     task_hiddens = task_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
-    print('deb', task_hiddens.shape, intermediate_layer.shape)
     forward_modifiers = [
         HiddenInjector(
             model,
