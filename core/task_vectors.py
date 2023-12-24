@@ -252,7 +252,7 @@ def stack_get_single_context_task_hiddens(
     task: Task,
     datasets: List[FewShotDataset],
     prev_hiddens,
-    prev_intermediate_layer: Union[int, torch.Tensor] = 2,  # TODO
+    prev_intermediate_layer: Union[int, torch.Tensor] = 2,
     num_test_inputs_to_avg: int = 1,  # 2
 ) -> torch.Tensor:
     for idx, train_in in enumerate(datasets[0].train_inputs):
@@ -274,6 +274,7 @@ def stack_get_single_context_task_hiddens(
     if isinstance(prev_intermediate_layer, int):
         prev_intermediate_layer = torch.tensor(prev_intermediate_layer).repeat(len(inputs["input_ids"]))
     injection_positions = torch.zeros_like(prev_intermediate_layer, dtype=torch.long)  # -1
+    print(prev_hiddens.size(), prev_intermediate_layer.size())
     prev_hiddens = prev_hiddens[torch.arange(len(prev_intermediate_layer)), prev_intermediate_layer]
 
     forward_modifiers = [
