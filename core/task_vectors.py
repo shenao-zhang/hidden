@@ -131,25 +131,28 @@ def run_stack_task_vector(
 
     # stack twice
     new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
-                                        multi_stack=True, prev_hiddens=task_hiddens, intermediate_layer=best_intermediate_layer)
-    """
-    dev_accuracy_by_layer = task_vector_accuracy_by_layer(
+                                        moderate=True, prev_hiddens=task_hiddens, prev_intermediate_layer=best_intermediate_layer)
+
+    dev_accuracy_by_layer_second = task_vector_accuracy_by_layer(
         model,
         tokenizer,
         task,
         dev_datasets,
         layers_to_test=layers_to_test,
         multi_context=multi_context,
+        moderate=True,
+        prev_hiddens=new_task_hiddens,
+        prev_intermediate_layer=best_intermediate_layer
     )
-    best_intermediate_layer = int(max(dev_accuracy_by_layer, key=dev_accuracy_by_layer.get))
-    """
+    best_intermediate_layer_second = int(max(dev_accuracy_by_layer_second, key=dev_accuracy_by_layer_second.get))
+    print('compare', best_intermediate_layer, best_intermediate_layer_second)
     second_predictions_stack = modulated_generate(
         model,
         tokenizer,
         task,
         test_datasets,
         task_hiddens=new_task_hiddens,
-        intermediate_layer=best_intermediate_layer,
+        intermediate_layer=best_intermediate_layer_second,
   #      include_train=True
     )
     return predictions, predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens
@@ -249,7 +252,7 @@ def stack_get_single_context_task_hiddens(
     task: Task,
     datasets: List[FewShotDataset],
     prev_hiddens,
-    intermediate_layer: Union[int, torch.Tensor] = 2,  # TODO
+    prev_intermediate_layer: Union[int, torch.Tensor] = 2,  # TODO
     num_test_inputs_to_avg: int = 1,  # 2
 ) -> torch.Tensor:
     for idx, train_in in enumerate(datasets[0].train_inputs):
@@ -268,15 +271,15 @@ def stack_get_single_context_task_hiddens(
     inputs = tokenize_datasets(tokenizer, new_datasets)
 
     # Stack hidden states
-    if isinstance(intermediate_layer, int):
-        intermediate_layer = torch.tensor(intermediate_layer).repeat(len(inputs["input_ids"]))
-    injection_positions = torch.zeros_like(intermediate_layer, dtype=torch.long)  # -1
-    prev_hiddens = prev_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
+    if isinstance(prev_intermediate_layer, int):
+        prev_intermediate_layer = torch.tensor(prev_intermediate_layer).repeat(len(inputs["input_ids"]))
+    injection_positions = torch.zeros_like(prev_intermediate_layer, dtype=torch.long)  # -1
+    prev_hiddens = prev_hiddens[torch.arange(len(prev_intermediate_layer)), prev_intermediate_layer]
 
     forward_modifiers = [
         HiddenInjector(
             model,
-            injection_layers=intermediate_layer,
+            injection_layers=prev_intermediate_layer,
             injection_positions=injection_positions,
             hiddens_to_inject=prev_hiddens,
         )
@@ -299,13 +302,13 @@ def get_task_hiddens(
     task: Task,
     datasets: List[FewShotDataset],
     multi_context: bool = False,
-    multi_stack: bool = False,
-    intermediate_layer=1,
-    prev_hiddens=None
+    moderate: bool = False,
+    prev_hiddens=None,
+    prev_intermediate_layer=1
 ) -> torch.Tensor:
-    if multi_stack:
+    if moderate:
         return stack_get_single_context_task_hiddens(model, tokenizer, task, datasets, prev_hiddens=prev_hiddens,
-                                                     intermediate_layer=intermediate_layer) # TODO
+                                                     prev_intermediate_layer=prev_intermediate_layer) # TODO
     if multi_context:
         return get_multi_context_task_hiddens(model, tokenizer, task, datasets)
     else:
@@ -383,13 +386,17 @@ def task_vector_accuracy_by_layer(
     datasets: List[FewShotDataset],
     layers_to_test: Optional[Iterable[int]] = None,
     multi_context: bool = False,
+    moderate: bool = False,
+    prev_hiddens=None,
+    prev_intermediate_layer: int = 1
 ) -> Dict[int, float]:
     if layers_to_test is None:
         num_layers = len(get_layers(model))
         layers_to_test = range(num_layers)
 
     # Get task hiddens
-    task_hiddens = get_task_hiddens(model, tokenizer, task, datasets, multi_context=multi_context)
+    task_hiddens = get_task_hiddens(model, tokenizer, task, datasets, multi_context=multi_context, moderate=moderate,
+                                    prev_hiddens=prev_hiddens, prev_intermediate_layer=prev_intermediate_layer)
 
     # Get input past_key_values
     inputs = tokenize_datasets(tokenizer, datasets, format_dataset_kwargs={"include_train": False})
