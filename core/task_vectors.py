@@ -274,7 +274,6 @@ def stack_get_single_context_task_hiddens(
     if isinstance(prev_intermediate_layer, int):
         prev_intermediate_layer = torch.tensor(prev_intermediate_layer).repeat(len(inputs["input_ids"]))
     injection_positions = torch.zeros_like(prev_intermediate_layer, dtype=torch.long)  # -1
-    print(prev_hiddens.size(), prev_intermediate_layer.size())
     prev_hiddens = prev_hiddens[torch.arange(len(prev_intermediate_layer)), prev_intermediate_layer]
 
     forward_modifiers = [
