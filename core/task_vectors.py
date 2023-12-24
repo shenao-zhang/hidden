@@ -130,6 +130,7 @@ def run_stack_task_vector(
     )
 
     # stack twice
+    print('hao', task_hiddens.shape)
     new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
                                         multi_stack=True, prev_hiddens=task_hiddens, intermediate_layer=best_intermediate_layer)
     """
@@ -231,6 +232,8 @@ def get_single_context_task_hiddens(
     ]
 
     inputs = tokenize_datasets(tokenizer, new_datasets)
+    print('why', len(inputs["input_ids"]))
+
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs)
 
