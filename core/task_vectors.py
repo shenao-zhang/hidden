@@ -272,6 +272,8 @@ def stack_get_single_context_task_hiddens(
     injection_positions = torch.zeros_like(intermediate_layer, dtype=torch.long)  # -1
     print(intermediate_layer.shape, prev_hiddens.shape)
     prev_hiddens = prev_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
+    print('zsa',prev_hiddens.shape, len(inputs["input_ids"]))
+
     forward_modifiers = [
         HiddenInjector(
             model,
