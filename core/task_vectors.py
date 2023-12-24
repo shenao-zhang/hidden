@@ -152,7 +152,7 @@ def run_stack_task_vector(
         intermediate_layer=best_intermediate_layer,
   #      include_train=True
     )
-    return predictions, second_predictions_stack, dev_accuracy_by_layer, task_hiddens
+    return predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens
 
 def run_overriding_task_vector(
     model: PreTrainedModel,
@@ -251,8 +251,8 @@ def stack_get_single_context_task_hiddens(
     intermediate_layer: Union[int, torch.Tensor] = 2,  # TODO
     num_test_inputs_to_avg: int = 2,
 ) -> torch.Tensor:
-  #  for idx, train_in in enumerate(datasets[0].train_inputs):
-  #      datasets[0].train_inputs[idx] = 'placeholder ' + train_in
+    for idx, train_in in enumerate(datasets[0].train_inputs):
+        datasets[0].train_inputs[idx] = 'placeholder ' + train_in
     new_datasets = [
         FewShotDataset(
             train_inputs=dataset.train_inputs,
@@ -352,7 +352,7 @@ def modulated_forward(
         intermediate_layer = torch.tensor(intermediate_layer).repeat(len(inputs["input_ids"]))
     injection_positions = -1 * torch.ones_like(intermediate_layer, dtype=torch.long)
     task_hiddens = task_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
-
+    print('deb', task_hiddens.shape, intermediate_layer.shape)
     forward_modifiers = [
         HiddenInjector(
             model,
