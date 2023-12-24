@@ -131,7 +131,7 @@ def run_stack_task_vector(
 
     # stack twice
     new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
-                                        multi_stack=True, prev_hiddens=task_hiddens)
+                                        multi_stack=True, prev_hiddens=task_hiddens, intermediate_layer=best_intermediate_layer)
     """
     dev_accuracy_by_layer = task_vector_accuracy_by_layer(
         model,
@@ -298,10 +298,12 @@ def get_task_hiddens(
     datasets: List[FewShotDataset],
     multi_context: bool = False,
     multi_stack: bool = False,
+    intermediate_layer=1,
     prev_hiddens=None
 ) -> torch.Tensor:
     if multi_stack:
-        return stack_get_single_context_task_hiddens(model, tokenizer, task, datasets, prev_hiddens=prev_hiddens) # TODO
+        return stack_get_single_context_task_hiddens(model, tokenizer, task, datasets, prev_hiddens=prev_hiddens,
+                                                     intermediate_layer=intermediate_layer) # TODO
     if multi_context:
         return get_multi_context_task_hiddens(model, tokenizer, task, datasets)
     else:
