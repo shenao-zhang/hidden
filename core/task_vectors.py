@@ -218,7 +218,7 @@ def get_single_context_task_hiddens(
     tokenizer: PreTrainedTokenizer,
     task: Task,
     datasets: List[FewShotDataset],
-    num_test_inputs_to_avg: int = 2,
+    num_test_inputs_to_avg: int = 1,  # 2
 ) -> torch.Tensor:
     new_datasets = [
         FewShotDataset(
@@ -252,10 +252,10 @@ def stack_get_single_context_task_hiddens(
     datasets: List[FewShotDataset],
     prev_hiddens,
     intermediate_layer: Union[int, torch.Tensor] = 2,  # TODO
-    num_test_inputs_to_avg: int = 2,
+    num_test_inputs_to_avg: int = 1,  # 2
 ) -> torch.Tensor:
-  #  for idx, train_in in enumerate(datasets[0].train_inputs):
-  #      datasets[0].train_inputs[idx] = 'placeholder ' + train_in
+    for idx, train_in in enumerate(datasets[0].train_inputs):
+        datasets[0].train_inputs[idx] = 'placeholder ' + train_in
     new_datasets = [
         FewShotDataset(
             train_inputs=dataset.train_inputs,
@@ -271,7 +271,7 @@ def stack_get_single_context_task_hiddens(
 
     # Stack hidden states
     if isinstance(intermediate_layer, int):
-        intermediate_layer = torch.tensor(intermediate_layer).repeat(50)
+        intermediate_layer = torch.tensor(intermediate_layer).repeat(len(inputs["input_ids"]))
     injection_positions = torch.zeros_like(intermediate_layer, dtype=torch.long)  # -1
     print(intermediate_layer.shape, prev_hiddens.shape)
     prev_hiddens = prev_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
