@@ -256,7 +256,7 @@ def stack_get_single_context_task_hiddens(
     num_test_inputs_to_avg: int = 1,  # 2
 ) -> torch.Tensor:
     for idx, train_in in enumerate(datasets[0].train_inputs):
-        datasets[0].train_inputs[idx] = 'placeholder ' + train_in
+        datasets[0].train_inputs[idx] = ' ' + train_in
     new_datasets = [
         FewShotDataset(
             train_inputs=dataset.train_inputs,
