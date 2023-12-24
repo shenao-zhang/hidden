@@ -41,7 +41,7 @@ class HiddenInjector:
 
                 mask = self._injection_layer == layer_idx
                 if mask.any():
-                    print('hidden_states: ', hidden_states.size())
+             #       print('hidden_states: ', hidden_states.size())
                     hidden_to_inject = self._hidden_to_inject.to(hidden_states.device).type(hidden_states.dtype)
                     idx_to_inject = torch.arange(hidden_states.shape[0], device=hidden_states.device)[mask]
                     hidden_states[idx_to_inject, self._injection_position[mask]] = hidden_to_inject[mask]

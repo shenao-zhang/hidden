@@ -128,10 +128,31 @@ def run_stack_task_vector(
         intermediate_layer=best_intermediate_layer,
         include_train=True
     )
-    task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context, multi_stack=False)#True, prev_hiddens=)
 
-
-    return predictions, predictions_stack, dev_accuracy_by_layer, task_hiddens
+    # stack twice
+    new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
+                                        multi_stack=True, prev_hiddens=task_hiddens)
+    """
+    dev_accuracy_by_layer = task_vector_accuracy_by_layer(
+        model,
+        tokenizer,
+        task,
+        dev_datasets,
+        layers_to_test=layers_to_test,
+        multi_context=multi_context,
+    )
+    best_intermediate_layer = int(max(dev_accuracy_by_layer, key=dev_accuracy_by_layer.get))
+    """
+    second_predictions_stack = modulated_generate(
+        model,
+        tokenizer,
+        task,
+        test_datasets,
+        task_hiddens=new_task_hiddens,
+        intermediate_layer=best_intermediate_layer,
+  #      include_train=True
+    )
+    return predictions, second_predictions_stack, dev_accuracy_by_layer, task_hiddens
 
 def run_overriding_task_vector(
     model: PreTrainedModel,
@@ -230,6 +251,7 @@ def stack_get_single_context_task_hiddens(
     intermediate_layer: Union[int, torch.Tensor] = 2,  # TODO
     num_test_inputs_to_avg: int = 2,
 ) -> torch.Tensor:
+    datasets[0].train_inputs = 'placeholder ' + datasets[0].train_inputs
     new_datasets = [
         FewShotDataset(
             train_inputs=dataset.train_inputs,
@@ -244,10 +266,9 @@ def stack_get_single_context_task_hiddens(
     inputs = tokenize_datasets(tokenizer, new_datasets)
 
     # Stack hidden states
-    input_dummy = tokenize_datasets(tokenizer, new_datasets, format_dataset_kwargs={"include_test": False})
     if isinstance(intermediate_layer, int):
         intermediate_layer = torch.tensor(intermediate_layer).repeat(len(inputs["input_ids"]))
-    injection_positions = -1 * torch.ones_like(intermediate_layer, dtype=torch.long)
+    injection_positions = torch.zeros_like(intermediate_layer, dtype=torch.long)  # -1
     prev_hiddens = prev_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
     forward_modifiers = [
         HiddenInjector(
