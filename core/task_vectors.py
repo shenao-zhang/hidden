@@ -130,7 +130,6 @@ def run_stack_task_vector(
     )
 
     # stack twice
-    print('hao', task_hiddens.shape)
     new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
                                         multi_stack=True, prev_hiddens=task_hiddens, intermediate_layer=best_intermediate_layer)
     """
@@ -153,7 +152,7 @@ def run_stack_task_vector(
         intermediate_layer=best_intermediate_layer,
   #      include_train=True
     )
-    return predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens
+    return predictions, predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens
 
 def run_overriding_task_vector(
     model: PreTrainedModel,
@@ -232,7 +231,6 @@ def get_single_context_task_hiddens(
     ]
 
     inputs = tokenize_datasets(tokenizer, new_datasets)
-    print('why', len(inputs["input_ids"]))
 
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs)
@@ -273,9 +271,7 @@ def stack_get_single_context_task_hiddens(
     if isinstance(intermediate_layer, int):
         intermediate_layer = torch.tensor(intermediate_layer).repeat(len(inputs["input_ids"]))
     injection_positions = torch.zeros_like(intermediate_layer, dtype=torch.long)  # -1
-    print(intermediate_layer.shape, prev_hiddens.shape)
     prev_hiddens = prev_hiddens[torch.arange(len(intermediate_layer)), intermediate_layer]
-    print('zsa',prev_hiddens.shape, len(inputs["input_ids"]))
 
     forward_modifiers = [
         HiddenInjector(
