@@ -41,12 +41,12 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
     # Evaluate ICL and Task Vector
     # TODO: Change back to 400, 100
     #num_test_datasets, num_dev_datasets = 50, 50
-    num_test_datasets, num_dev_datasets = 50, 50
+    num_test_datasets, num_dev_datasets = 100, 100
 
     test_datasets = task.create_datasets(num_datasets=num_test_datasets, num_examples=num_examples)
     dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
     icl_predictions = run_icl(model, tokenizer, task, test_datasets)
-    tv_predictions, tv_predictions_stack, tv_predictions_stack_2, tv_dev_accuracy_by_layer, task_hiddens = run_stack_task_vector(
+    tv_predictions, tv_predictions_stack, tv_predictions_stack_2, tv_dev_accuracy_by_layer, task_hiddens, tv_dev_accuracy_by_layer2 = run_stack_task_vector(
         model,
         tokenizer,
         task,
@@ -56,6 +56,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
         num_examples=num_examples
     )
     accuracies["tv_dev_by_layer"] = tv_dev_accuracy_by_layer
+    accuracies["tv_dev_by_layer2"] = tv_dev_accuracy_by_layer2
     accuracies["icl"] = calculate_accuracy_on_datasets(task, icl_predictions, test_datasets)
     accuracies["tv"] = calculate_accuracy_on_datasets(task, tv_predictions, test_datasets)
     accuracies["tv_stack"] = calculate_accuracy_on_datasets(task, tv_predictions_stack, test_datasets)
@@ -132,7 +133,10 @@ def run_main_experiment(
             "num_examples": num_examples,
             "icl_accuracy": accuracies["icl"],
             "tv_accuracy": accuracies["tv"],
+            "stack_tv_accuracy": accuracies["tv_stack"],
+            "second_tv_accuracy": accuracies["tv_stack2"],
             "tv_dev_accruacy_by_layer": accuracies["tv_dev_by_layer"],
+            "tv_dev_accruacy_by_layer2": accuracies["tv_dev_by_layer2"],
             "tv_ordered_tokens_by_layer": tv_ordered_tokens_by_layer,
         }
 

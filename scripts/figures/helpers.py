@@ -61,6 +61,7 @@ def create_accuracies_df(results):
 
     data = []
     for model_name, model_acc in accuracies.items():
+        print(model_acc.items())
         for task_full_name, task_acc in model_acc.items():
             task_type = task_full_name.split("_")[0]
             task_name = "_".join(task_full_name.split("_")[1:])

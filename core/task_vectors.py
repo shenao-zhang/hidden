@@ -155,7 +155,7 @@ def run_stack_task_vector(
         intermediate_layer=best_intermediate_layer_second,
   #      include_train=True
     )
-    return predictions, predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens
+    return predictions, predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens, dev_accuracy_by_layer_second
 
 def run_overriding_task_vector(
     model: PreTrainedModel,
