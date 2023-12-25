@@ -313,5 +313,5 @@ def create_all_figures(experiment_id: str):
 
 
 if __name__ == "__main__":
-    experiment_id = "2"
+    experiment_id = "3"
     create_all_figures(experiment_id)

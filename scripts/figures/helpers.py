@@ -53,6 +53,7 @@ def extract_accuracies(results):
                 "tv": task_results["tv_accuracy"],
                 "stack_tv_accuracy": task_results["stack_tv_accuracy"],
                 "second_tv_accuracy": task_results["second_tv_accuracy"],
+                "third_tv_accuracy": task_results["third_tv_accuracy"],
             }
 
     return accuracies

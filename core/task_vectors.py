@@ -68,6 +68,27 @@ def run_task_vector(
     return predictions, dev_accuracy_by_layer, task_hiddens
 
 
+def stack_helper():
+    new_ins = []
+    new_outs = []
+    for idx, dataset in enumerate(test_datasets):
+        exclude_samples = [dataset.test_input] + dataset.train_inputs
+        new_in = task.sample_inputs(num_examples, exclude=exclude_samples)
+        new_ins.append(new_in)
+        new_out = [task.calc_output(x) for x in new_in]
+        new_outs.append(new_out)
+    new_test_datasets = [
+        FewShotDataset(
+            train_inputs=new_ins[idx],
+            train_outputs=new_outs[idx],
+            test_input=dataset.test_input,
+            test_output=task.calc_output(dataset.test_input),
+        )
+        for idx, dataset in enumerate(test_datasets)
+    ]
+    new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
+                                        moderate=True, prev_hiddens=task_hiddens, prev_intermediate_layer=best_intermediate_layer)
+
 def run_stack_task_vector(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
@@ -289,7 +310,8 @@ def stack_get_single_context_task_hiddens(
     num_test_inputs_to_avg: int = 1,  # 2
 ) -> torch.Tensor:
     for idx, train_in in enumerate(datasets[0].train_inputs):
-        datasets[0].train_inputs[idx] = ' ' + train_in
+        datasets[0].train_inputs[idx] = train_in + ' '
+#        datasets[0].train_inputs[idx] = ' ' + train_in
     new_datasets = [
         FewShotDataset(
             train_inputs=dataset.train_inputs,
@@ -306,7 +328,7 @@ def stack_get_single_context_task_hiddens(
     # Stack hidden states
     if isinstance(prev_intermediate_layer, int):
         prev_intermediate_layer = torch.tensor(prev_intermediate_layer).repeat(len(inputs["input_ids"]))
-    injection_positions = torch.zeros_like(prev_intermediate_layer, dtype=torch.long)  # -1
+    injection_positions = -2 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
     prev_hiddens = prev_hiddens[torch.arange(len(prev_intermediate_layer)), prev_intermediate_layer]
 
     forward_modifiers = [
