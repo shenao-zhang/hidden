@@ -241,7 +241,7 @@ def create_top_tokens_table(results):
         "knowledge_country_capital",
     ]
 
-    model_names = ["llama_13B", "pythia_12B", "gpt-j_6B"]
+    model_names = ["pythia_2.8B", "gpt-j_6B"]
 
     df_data = {}
 
