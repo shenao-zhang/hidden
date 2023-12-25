@@ -67,8 +67,15 @@ def run_task_vector(
 
     return predictions, dev_accuracy_by_layer, task_hiddens
 
-
-def stack_helper():
+def stack_helper(
+    model: PreTrainedModel,
+    tokenizer: PreTrainedTokenizer,
+    task: Task,
+    test_datasets: List[FewShotDataset],
+    task_hiddens: torch.Tensor,
+    multi_context: bool = False,
+    num_examples: int = 1
+):
     new_ins = []
     new_outs = []
     for idx, dataset in enumerate(test_datasets):
@@ -87,7 +94,19 @@ def stack_helper():
         for idx, dataset in enumerate(test_datasets)
     ]
     new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
-                                        moderate=True, prev_hiddens=task_hiddens, prev_intermediate_layer=best_intermediate_layer)
+                                        moderate=True, prev_hiddens=task_hiddens,
+                                        prev_intermediate_layer=best_intermediate_layer)
+    best_intermediate_layer_second = best_intermediate_layer
+    stack_predictions = modulated_generate(
+        model,
+        tokenizer,
+        task,
+        test_datasets,
+        task_hiddens=new_task_hiddens,
+        intermediate_layer=best_intermediate_layer_second,
+        #      include_train=True
+    )
+    return new_task_hiddens, stack_predictions
 
 def run_stack_task_vector(
     model: PreTrainedModel,
@@ -97,7 +116,6 @@ def run_stack_task_vector(
     dev_datasets: List[FewShotDataset],
     layers_to_test: Optional[Iterable[int]] = None,
     multi_context: bool = False,
-    num_datasets: int = 1,
     num_examples: int = 1,
 ):
     dev_accuracy_by_layer = task_vector_accuracy_by_layer(
@@ -119,129 +137,12 @@ def run_stack_task_vector(
         task_hiddens=task_hiddens,
         intermediate_layer=best_intermediate_layer,
     )
-
-    # stack LLMs
-  #  new_test_datasets = task.create_datasets(num_datasets=num_datasets, num_examples=num_examples)
-    new_ins = []
-    new_outs = []
-    for idx, dataset in enumerate(test_datasets):
-        exclude_samples = [dataset.test_input] + dataset.train_inputs
-        new_in = task.sample_inputs(num_examples, exclude=exclude_samples)
-        new_ins.append(new_in)
-        new_out = [task.calc_output(x) for x in new_in]
-        new_outs.append(new_out)
-    new_test_datasets = [
-        FewShotDataset(
-            train_inputs=new_ins[idx],
-            train_outputs=new_outs[idx],
-            test_input=dataset.test_input,
-            test_output=task.calc_output(dataset.test_input),
-        )
-        for idx, dataset in enumerate(test_datasets)
-    ]
-    predictions_stack = modulated_generate(
-        model,
-        tokenizer,
-        task,
-        new_test_datasets,
-      #  test_datasets,
-        task_hiddens=task_hiddens,
-        intermediate_layer=best_intermediate_layer,
-        include_train=True
-    )
-
-    # stack twice hidden
-    new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
-                                        moderate=True, prev_hiddens=task_hiddens, prev_intermediate_layer=best_intermediate_layer)
-    """
-    dev_accuracy_by_layer_second = task_vector_accuracy_by_layer(
-        model,
-        tokenizer,
-        task,
-        dev_datasets,
-        layers_to_test=layers_to_test,
-        multi_context=multi_context,
-        moderate=True,
-        prev_hiddens=new_task_hiddens,
-        prev_intermediate_layer=best_intermediate_layer
-    )
-    best_intermediate_layer_second = int(max(dev_accuracy_by_layer_second, key=dev_accuracy_by_layer_second.get))
-    """
-    best_intermediate_layer_second = best_intermediate_layer
-    second_predictions_stack = modulated_generate(
-        model,
-        tokenizer,
-        task,
-        test_datasets,
-        task_hiddens=new_task_hiddens,
-        intermediate_layer=best_intermediate_layer_second,
-  #      include_train=True
-    )
-
-    # stack three times
-    new_ins = []
-    new_outs = []
-    for idx, dataset in enumerate(test_datasets):
-        exclude_samples = [dataset.test_input] + dataset.train_inputs
-        new_in = task.sample_inputs(num_examples, exclude=exclude_samples)
-        new_ins.append(new_in)
-        new_out = [task.calc_output(x) for x in new_in]
-        new_outs.append(new_out)
-    new_test_datasets = [
-        FewShotDataset(
-            train_inputs=new_ins[idx],
-            train_outputs=new_outs[idx],
-            test_input=dataset.test_input,
-            test_output=task.calc_output(dataset.test_input),
-        )
-        for idx, dataset in enumerate(test_datasets)
-    ]
-    new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
-                                        moderate=True, prev_hiddens=new_task_hiddens,
-                                        prev_intermediate_layer=best_intermediate_layer)
-    best_intermediate_layer_third = best_intermediate_layer
-    third_predictions_stack = modulated_generate(
-        model,
-        tokenizer,
-        task,
-        test_datasets,
-        task_hiddens=new_task_hiddens,
-        intermediate_layer=best_intermediate_layer_third,
-        #      include_train=True
-    )
-
-    # stack four times
-    new_ins = []
-    new_outs = []
-    for idx, dataset in enumerate(test_datasets):
-        exclude_samples = [dataset.test_input] + dataset.train_inputs
-        new_in = task.sample_inputs(num_examples, exclude=exclude_samples)
-        new_ins.append(new_in)
-        new_out = [task.calc_output(x) for x in new_in]
-        new_outs.append(new_out)
-    new_test_datasets = [
-        FewShotDataset(
-            train_inputs=new_ins[idx],
-            train_outputs=new_outs[idx],
-            test_input=dataset.test_input,
-            test_output=task.calc_output(dataset.test_input),
-        )
-        for idx, dataset in enumerate(test_datasets)
-    ]
-    new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
-                                        moderate=True, prev_hiddens=new_task_hiddens,
-                                        prev_intermediate_layer=best_intermediate_layer)
-    best_intermediate_layer_fourth = best_intermediate_layer
-    fourth_predictions_stack = modulated_generate(
-        model,
-        tokenizer,
-        task,
-        test_datasets,
-        task_hiddens=new_task_hiddens,
-        intermediate_layer=best_intermediate_layer_fourth,
-        #      include_train=True
-    )
-    return predictions, predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens, third_predictions_stack, fourth_predictions_stack
+    stack_predictions_list = []
+    for _ in range(10):
+        task_hiddens, stack_predictions = stack_helper(model, tokenizer, task, test_datasets, task_hiddens,
+                                                       multi_context, num_examples)
+        stack_predictions_list.append(stack_predictions)
+    return predictions, dev_accuracy_by_layer, task_hiddens, stack_predictions_list
 
 def run_overriding_task_vector(
     model: PreTrainedModel,

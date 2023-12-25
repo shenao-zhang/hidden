@@ -54,6 +54,7 @@ def extract_accuracies(results):
                 "stack_tv_accuracy": task_results["stack_tv_accuracy"],
                 "second_tv_accuracy": task_results["second_tv_accuracy"],
                 "third_tv_accuracy": task_results["third_tv_accuracy"],
+                "fourth_tv_accuracy": task_results["fourth_tv_accuracy"],
             }
 
     return accuracies
@@ -75,7 +76,7 @@ def create_accuracies_df(results):
             data.append([model_name, task_type, task_name, "Stack", task_acc["stack_tv_accuracy"]])
             data.append([model_name, task_type, task_name, "Second_TV", task_acc["second_tv_accuracy"]])
             data.append([model_name, task_type, task_name, "Third_TV", task_acc["third_tv_accuracy"]])
-
+            data.append([model_name, task_type, task_name, "Fourth_TV", task_acc["fourth_tv_accuracy"]])
 
     df = pd.DataFrame(data, columns=["model", "task_type", "task_name", "method", "accuracy"])
 

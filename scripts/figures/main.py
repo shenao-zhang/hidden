@@ -39,7 +39,7 @@ def filter_tasks_with_low_icl_accuracy(grouped_accuracies_df, regular_accuracy_t
 def plot_avg_accuracies_per_model(grouped_accuracies_df):
     filtered_task_accuracies_df = filter_tasks_with_low_icl_accuracy(grouped_accuracies_df)
 
-    columns_to_plot = ["Baseline", "Regular", "TV", "Stack", "Second_TV", "Third_TV"]
+    columns_to_plot = ["Regular", "TV", "Second_TV", "Third_TV", "Fourth_TV"]
 
     # Calculate average accuracy and std deviation for each model
     df_agg = filtered_task_accuracies_df.groupby("model")[columns_to_plot].agg("mean")
@@ -56,7 +56,7 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
     fig, ax = plt.subplots(figsize=(6, 6))
 
     bar_width = 0.3
-    hatches = ["/", "\\", "|", "/", "\\", "|"]
+    hatches = ["/", "\\", "|", "/", "\\", "|", "/", "\\", "|", "/", "\\"]
     for j, column in enumerate(columns_to_plot):
         means = df_agg[column]
         y_positions = np.arange(len(means)) + (j - 1) * bar_width
@@ -66,7 +66,7 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
             means,
             height=bar_width,
             capsize=2,
-            color=["grey", "blue", "green", "red", "purple", "cyan"][j],
+            color=["blue", "green", "purple", "cyan", "yellow", "grey", "red"][j],
             edgecolor="white",
             hatch=hatches[j] * 2,
         )
@@ -81,12 +81,11 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
 
     # show legend below the plot
     legend_elements = [
-        Patch(facecolor="grey", edgecolor="white", hatch=hatches[0] * 2, label="Baseline"),
         Patch(facecolor="blue", edgecolor="white", hatch=hatches[1] * 2, label="ICL"),
         Patch(facecolor="green", edgecolor="white", hatch=hatches[2] * 2, label="TV"),
-        Patch(facecolor="red", edgecolor="white", hatch=hatches[3] * 2, label="Stack"),
-        Patch(facecolor="purple", edgecolor="white", hatch=hatches[4] * 2, label="Second_TV"),
-        Patch(facecolor="cyan", edgecolor="white", hatch=hatches[5] * 2, label="Third_TV")
+        Patch(facecolor="purple", edgecolor="white", hatch=hatches[3] * 2, label="Second_TV"),
+        Patch(facecolor="cyan", edgecolor="white", hatch=hatches[4] * 2, label="Third_TV"),
+        Patch(facecolor="yellow", edgecolor="white", hatch=hatches[5] * 2, label="Fourth_TV")
     ]
     ax.legend(handles=legend_elements, loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=3)
 
@@ -313,5 +312,5 @@ def create_all_figures(experiment_id: str):
 
 
 if __name__ == "__main__":
-    experiment_id = "9"
+    experiment_id = "10"
     create_all_figures(experiment_id)
