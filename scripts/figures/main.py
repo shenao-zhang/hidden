@@ -300,15 +300,15 @@ def create_all_figures(experiment_id: str):
     grouped_accuracies_df = create_grouped_accuracies_df(accuracies_df)
 
     plot_avg_accuracies_per_model(grouped_accuracies_df)
-    plot_accuracy_by_layer(results, model_names=["llama_7B", "llama_13B", "llama_30B"])
+  #  plot_accuracy_by_layer(results, model_names=["llama_7B", "llama_13B", "llama_30B"])
     plot_accuracy_by_layer(
-        results, model_names=["pythia_2.8B", "pythia_6.9B", "pythia_12B", "gpt-j_6B"], filename_suffix="_appendix"
+        results, model_names=["pythia_2.8B", "gpt-j_6B"], filename_suffix="_appendix"
     )
     create_results_latex_table(grouped_accuracies_df)
     create_top_tokens_table(results)
 
 
 if __name__ == "__main__":
-    experiment_id = "camera_ready"
+    experiment_id = "1"
 
     create_all_figures(experiment_id)
