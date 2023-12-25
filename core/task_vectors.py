@@ -74,7 +74,8 @@ def stack_helper(
     test_datasets: List[FewShotDataset],
     task_hiddens: torch.Tensor,
     multi_context: bool = False,
-    num_examples: int = 1
+    num_examples: int = 1,
+    best_intermediate_layer: int = 1
 ):
     new_ins = []
     new_outs = []
@@ -96,14 +97,13 @@ def stack_helper(
     new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
                                         moderate=True, prev_hiddens=task_hiddens,
                                         prev_intermediate_layer=best_intermediate_layer)
-    best_intermediate_layer_second = best_intermediate_layer
     stack_predictions = modulated_generate(
         model,
         tokenizer,
         task,
         test_datasets,
         task_hiddens=new_task_hiddens,
-        intermediate_layer=best_intermediate_layer_second,
+        intermediate_layer=best_intermediate_layer,
         #      include_train=True
     )
     return new_task_hiddens, stack_predictions
@@ -140,7 +140,7 @@ def run_stack_task_vector(
     stack_predictions_list = []
     for _ in range(10):
         task_hiddens, stack_predictions = stack_helper(model, tokenizer, task, test_datasets, task_hiddens,
-                                                       multi_context, num_examples)
+                                                       multi_context, num_examples, best_intermediate_layer)
         stack_predictions_list.append(stack_predictions)
     return predictions, dev_accuracy_by_layer, task_hiddens, stack_predictions_list
 
