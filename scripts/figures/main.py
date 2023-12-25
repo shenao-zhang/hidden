@@ -39,7 +39,7 @@ def filter_tasks_with_low_icl_accuracy(grouped_accuracies_df, regular_accuracy_t
 def plot_avg_accuracies_per_model(grouped_accuracies_df):
     filtered_task_accuracies_df = filter_tasks_with_low_icl_accuracy(grouped_accuracies_df)
 
-    columns_to_plot = ["Baseline", "Hypothesis", "Regular"]
+    columns_to_plot = ["Baseline", "Regular", "TV", "Stack", "Second_TV"]
 
     # Calculate average accuracy and std deviation for each model
     df_agg = filtered_task_accuracies_df.groupby("model")[columns_to_plot].agg("mean")
@@ -56,7 +56,7 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
     fig, ax = plt.subplots(figsize=(6, 6))
 
     bar_width = 0.3
-    hatches = ["/", "\\", "|"]
+    hatches = ["/", "\\", "|", "/", "|"]
     for j, column in enumerate(columns_to_plot):
         means = df_agg[column]
         y_positions = np.arange(len(means)) + (j - 1) * bar_width
@@ -66,7 +66,7 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
             means,
             height=bar_width,
             capsize=2,
-            color=["grey", "blue", "green"][j],
+            color=["grey", "blue", "green", "red", "purple"][j],
             edgecolor="white",
             hatch=hatches[j] * 2,
         )
@@ -82,8 +82,10 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
     # show legend below the plot
     legend_elements = [
         Patch(facecolor="grey", edgecolor="white", hatch=hatches[0] * 2, label="Baseline"),
-        Patch(facecolor="green", edgecolor="white", hatch=hatches[2] * 2, label="Regular"),
-        Patch(facecolor="blue", edgecolor="white", hatch=hatches[1] * 2, label="Hypothesis"),
+        Patch(facecolor="blue", edgecolor="white", hatch=hatches[1] * 2, label="ICL"),
+        Patch(facecolor="green", edgecolor="white", hatch=hatches[2] * 2, label="TV"),
+        Patch(facecolor="red", edgecolor="white", hatch=hatches[2] * 2, label="Stack"),
+        Patch(facecolor="purple", edgecolor="white", hatch=hatches[2] * 2, label="Second_TV")
     ]
     ax.legend(handles=legend_elements, loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=3)
 
@@ -117,45 +119,46 @@ def plot_accuracy_by_layer(results, model_names: List[str], normalize_x_axis: bo
     markers = ["o", "^", "s", "P", "X", "D", "v"]
 
     for idx, model_name in enumerate(model_names):
-        min_num_layers = min(
-            len(results[model_name][task_name]["tv_dev_accruacy_by_layer"]) for task_name in results[model_name]
-        )
-        all_tv_dev_accruacy_by_layer = np.array(
-            [
-                np.array(list(results[model_name][task_name]["tv_dev_accruacy_by_layer"].values())[:min_num_layers])
-                for task_name in results[model_name]
+        for acc_layer in ["tv_dev_accruacy_by_layer", "tv_dev_accruacy_by_layer2"]:
+            min_num_layers = min(
+                len(results[model_name][task_name][acc_layer]) for task_name in results[model_name]
+            )
+            all_tv_dev_accruacy_by_layer = np.array(
+                [
+                    np.array(list(results[model_name][task_name][acc_layer].values())[:min_num_layers])
+                    for task_name in results[model_name]
+                ]
+            )
+
+            all_tv_dev_accruacy_by_layer = all_tv_dev_accruacy_by_layer[
+                all_tv_dev_accruacy_by_layer.max(axis=-1) > regular_accuracy_threshold
             ]
-        )
 
-        all_tv_dev_accruacy_by_layer = all_tv_dev_accruacy_by_layer[
-            all_tv_dev_accruacy_by_layer.max(axis=-1) > regular_accuracy_threshold
-        ]
+            mean_tv_dev_accruacy_by_layer = np.mean(all_tv_dev_accruacy_by_layer, axis=0)
+            std_tv_dev_accruacy_by_layer = np.std(all_tv_dev_accruacy_by_layer, axis=0)
 
-        mean_tv_dev_accruacy_by_layer = np.mean(all_tv_dev_accruacy_by_layer, axis=0)
-        std_tv_dev_accruacy_by_layer = np.std(all_tv_dev_accruacy_by_layer, axis=0)
+            layers = np.array(list(list(results[model_name].values())[0][acc_layer].keys()))
+            layers_fraction = layers / (max(layers) / 0.9)
 
-        layers = np.array(list(list(results[model_name].values())[0]["tv_dev_accruacy_by_layer"].keys()))
-        layers_fraction = layers / (max(layers) / 0.9)
+            x_values = layers
+            if normalize_x_axis:
+                x_values = x_values / num_layers[model_name]
 
-        x_values = layers
-        if normalize_x_axis:
-            x_values = x_values / num_layers[model_name]
-
-        # Use different marker for each model and increase the marker size
-        plt.plot(
-            x_values,
-            mean_tv_dev_accruacy_by_layer,
-            marker=markers[idx],
-            markersize=10,
-            label=MODEL_DISPLAY_NAME_MAPPING[model_name],
-            alpha=0.8,
-        )
-        plt.fill_between(
-            x_values,
-            mean_tv_dev_accruacy_by_layer - std_tv_dev_accruacy_by_layer,
-            mean_tv_dev_accruacy_by_layer + std_tv_dev_accruacy_by_layer,
-            alpha=0.1,
-        )
+            # Use different marker for each model and increase the marker size
+            plt.plot(
+                x_values,
+                mean_tv_dev_accruacy_by_layer,
+                marker=markers[idx],
+                markersize=10,
+                label=MODEL_DISPLAY_NAME_MAPPING[model_name],
+                alpha=0.8,
+            )
+            plt.fill_between(
+                x_values,
+                mean_tv_dev_accruacy_by_layer - std_tv_dev_accruacy_by_layer,
+                mean_tv_dev_accruacy_by_layer + std_tv_dev_accruacy_by_layer,
+                alpha=0.1,
+            )
 
     plt.xlabel("Layer")
     plt.ylabel("Accuracy")

@@ -41,7 +41,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
     # Evaluate ICL and Task Vector
     # TODO: Change back to 400, 100
     #num_test_datasets, num_dev_datasets = 50, 50
-    num_test_datasets, num_dev_datasets = 100, 100
+    num_test_datasets, num_dev_datasets = 80, 80
 
     test_datasets = task.create_datasets(num_datasets=num_test_datasets, num_examples=num_examples)
     dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
