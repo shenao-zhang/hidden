@@ -99,7 +99,7 @@ def run_main_experiment(
 
     tasks = get_all_tasks(tokenizer=tokenizer)
 
-    num_examples = 3
+    num_examples = 2
 
     for i, task_name in enumerate(TASKS_TO_EVALUATE):
         task = tasks[task_name]
