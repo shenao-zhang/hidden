@@ -96,7 +96,7 @@ def stack_helper(
     ]
     new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
                                         moderate=True, prev_hiddens=task_hiddens,
-                                        prev_intermediate_layer=best_intermediate_layer-1)
+                                        prev_intermediate_layer=best_intermediate_layer-6) # -1
     stack_predictions = modulated_generate(
         model,
         tokenizer,
