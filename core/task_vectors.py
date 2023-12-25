@@ -209,7 +209,39 @@ def run_stack_task_vector(
         intermediate_layer=best_intermediate_layer_third,
         #      include_train=True
     )
-    return predictions, predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens, third_predictions_stack
+
+    # stack four times
+    new_ins = []
+    new_outs = []
+    for idx, dataset in enumerate(test_datasets):
+        exclude_samples = [dataset.test_input] + dataset.train_inputs
+        new_in = task.sample_inputs(num_examples, exclude=exclude_samples)
+        new_ins.append(new_in)
+        new_out = [task.calc_output(x) for x in new_in]
+        new_outs.append(new_out)
+    new_test_datasets = [
+        FewShotDataset(
+            train_inputs=new_ins[idx],
+            train_outputs=new_outs[idx],
+            test_input=dataset.test_input,
+            test_output=task.calc_output(dataset.test_input),
+        )
+        for idx, dataset in enumerate(test_datasets)
+    ]
+    new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
+                                        moderate=True, prev_hiddens=new_task_hiddens,
+                                        prev_intermediate_layer=best_intermediate_layer)
+    best_intermediate_layer_fourth = best_intermediate_layer
+    fourth_predictions_stack = modulated_generate(
+        model,
+        tokenizer,
+        task,
+        test_datasets,
+        task_hiddens=new_task_hiddens,
+        intermediate_layer=best_intermediate_layer_fourth,
+        #      include_train=True
+    )
+    return predictions, predictions_stack, second_predictions_stack, dev_accuracy_by_layer, task_hiddens, third_predictions_stack, fourth_predictions_stack
 
 def run_overriding_task_vector(
     model: PreTrainedModel,

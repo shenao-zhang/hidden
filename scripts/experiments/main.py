@@ -46,7 +46,8 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
     test_datasets = task.create_datasets(num_datasets=num_test_datasets, num_examples=num_examples)
     dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
     icl_predictions = run_icl(model, tokenizer, task, test_datasets)
-    tv_predictions, tv_predictions_stack, tv_predictions_stack_2, tv_dev_accuracy_by_layer, task_hiddens, tv_predictions_stack_3 = run_stack_task_vector(
+    tv_predictions, tv_predictions_stack, tv_predictions_stack_2, tv_dev_accuracy_by_layer, task_hiddens, \
+        tv_predictions_stack_3, tv_predictions_stack_4 = run_stack_task_vector(
         model,
         tokenizer,
         task,
@@ -61,6 +62,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
     accuracies["tv_stack"] = calculate_accuracy_on_datasets(task, tv_predictions_stack, test_datasets)
     accuracies["tv_stack2"] = calculate_accuracy_on_datasets(task, tv_predictions_stack_2, test_datasets)
     accuracies["tv_stack3"] = calculate_accuracy_on_datasets(task, tv_predictions_stack_3, test_datasets)
+    accuracies["tv_stack4"] = calculate_accuracy_on_datasets(task, tv_predictions_stack_4, test_datasets)
 
     tv_ordered_tokens_by_layer = {}
     try:
@@ -101,7 +103,7 @@ def run_main_experiment(
 
     tasks = get_all_tasks(tokenizer=tokenizer)
 
-    num_examples = 5
+    num_examples = 3
 
     for i, task_name in enumerate(TASKS_TO_EVALUATE):
         task = tasks[task_name]
@@ -122,6 +124,7 @@ def run_main_experiment(
         print(f"Stack Task Vector Accuracy: {accuracies['tv_stack']:.2f}")
         print(f"Second Stack Task Vector Accuracy: {accuracies['tv_stack2']:.2f}")
         print(f"Third Stack Task Vector Accuracy: {accuracies['tv_stack3']:.2f}")
+        print(f"Fourth Stack Task Vector Accuracy: {accuracies['tv_stack4']:.2f}")
 
         print(f"Dev Accuracy by layer: ", end="")
         for layer, accuracy in accuracies["tv_dev_by_layer"].items():
@@ -137,6 +140,7 @@ def run_main_experiment(
             "stack_tv_accuracy": accuracies["tv_stack"],
             "second_tv_accuracy": accuracies["tv_stack2"],
             "third_tv_accuracy": accuracies["tv_stack3"],
+            "fourth_tv_accuracy": accuracies["tv_stack4"],
             "tv_dev_accruacy_by_layer": accuracies["tv_dev_by_layer"],
             "tv_ordered_tokens_by_layer": tv_ordered_tokens_by_layer,
         }
