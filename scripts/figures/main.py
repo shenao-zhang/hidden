@@ -241,7 +241,7 @@ def create_top_tokens_table(results):
         "knowledge_country_capital",
     ]
 
-    model_names = ["pythia_2.8B", "gpt-j_6B"]
+    model_names = ["pythia_2.8B"]
 
     df_data = {}
 
@@ -302,7 +302,7 @@ def create_all_figures(experiment_id: str):
     plot_avg_accuracies_per_model(grouped_accuracies_df)
   #  plot_accuracy_by_layer(results, model_names=["llama_7B", "llama_13B", "llama_30B"])
     plot_accuracy_by_layer(
-        results, model_names=["pythia_2.8B", "gpt-j_6B"], filename_suffix="_appendix"
+        results, model_names=["pythia_2.8B"], filename_suffix="_appendix"
     )
     create_results_latex_table(grouped_accuracies_df)
     create_top_tokens_table(results)

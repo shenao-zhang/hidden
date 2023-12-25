@@ -1,0 +1,48 @@
+\onecolumn
+\begin{center}
+\small
+\begin{longtable}{lllrrr}
+
+\caption{Complete results of the main experiment for all tasks and models.} \label{table:main_results} \\
+
+\toprule
+ &  & method & Baseline & Hypothesis & Regular \\
+Model & Task type & Task name &  &  &  \\
+\midrule
+    \endfirsthead
+
+    \multicolumn{3}{c}
+    {{\bfseries \tablename\ \thetable{} -- continued from previous page}} \\
+    \toprule
+ &  & method & Baseline & Hypothesis & Regular \\
+Model & Task type & Task name &  &  &  \\
+\midrule
+    \endhead
+    
+\multirow[t]{18}{*}{Pythia 2.8B} & \multirow[t]{6}{*}{Algorithmic} & List first & 0.65 & 0.92 & 1.00 \\
+ &  & List last & 0.02 & 0.93 & 1.00 \\
+ &  & Next letter & 0.42 & 0.85 & 0.94 \\
+ &  & Prev letter & 0.06 & 0.27 & 0.50 \\
+ &  & To lower & 0.00 & 0.97 & 1.00 \\
+ &  & To upper & 0.00 & 0.97 & 1.00 \\
+\cline{2-6}
+ & \multirow[t]{4}{*}{Knowledge} & Country capital & 0.12 & 0.51 & 0.64 \\
+ &  & Location continent & 0.00 & 0.60 & 0.82 \\
+ &  & Location religion & 0.04 & 0.69 & 0.87 \\
+ &  & Person language & 0.01 & 0.76 & 0.80 \\
+\cline{2-6}
+ & \multirow[t]{4}{*}{Linguistic} & Antonyms & 0.40 & 0.62 & 0.73 \\
+ &  & Plural singular & 0.06 & 0.79 & 0.81 \\
+ &  & Present simple gerund & 0.00 & 0.84 & 0.96 \\
+ &  & Present simple past simple & 0.00 & 0.81 & 0.92 \\
+\cline{2-6}
+ & \multirow[t]{4}{*}{Translation} & En es & 0.07 & 0.23 & 0.76 \\
+ &  & En fr & 0.13 & 0.36 & 0.57 \\
+ &  & Es en & 0.16 & 0.66 & 0.85 \\
+ &  & Fr en & 0.20 & 0.65 & 0.80 \\
+\cline{1-6} \cline{2-6}
+\bottomrule
+\end{longtable}
+
+\end{center}
+\twocolumn
