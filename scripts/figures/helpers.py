@@ -73,6 +73,7 @@ def create_accuracies_df(results):
             data.append([model_name, task_type, task_name, "TV", task_acc["tv"]])
             data.append([model_name, task_type, task_name, "Stack", task_acc["stack_tv_accuracy"]])
             data.append([model_name, task_type, task_name, "Second_TV", task_acc["second_tv_accuracy"]])
+            data.append([model_name, task_type, task_name, "Third_TV", task_acc["third_tv_accuracy"]])
 
 
     df = pd.DataFrame(data, columns=["model", "task_type", "task_name", "method", "accuracy"])
