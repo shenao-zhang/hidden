@@ -309,13 +309,13 @@ def stack_get_single_context_task_hiddens(
     prev_intermediate_layer: Union[int, torch.Tensor] = 2,
     num_test_inputs_to_avg: int = 1,  # 2
 ) -> torch.Tensor:
-#    for idx, train_in in enumerate(datasets[0].train_inputs):
-#        datasets[0].train_inputs[idx] = ' ' + train_in
+    for idx, train_in in enumerate(datasets[0].train_inputs):
+        datasets[0].train_inputs[idx] = ' ' + train_in
     new_datasets = [
         FewShotDataset(
             train_inputs=dataset.train_inputs,
             train_outputs=dataset.train_outputs,
-            test_input=test_input + ' ',
+            test_input=test_input,
             test_output=task.calc_output(test_input),
         )
         for dataset in datasets
@@ -327,7 +327,7 @@ def stack_get_single_context_task_hiddens(
     # Stack hidden states
     if isinstance(prev_intermediate_layer, int):
         prev_intermediate_layer = torch.tensor(prev_intermediate_layer).repeat(len(inputs["input_ids"]))
-    injection_positions = -2 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
+    injection_positions = -1 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
     prev_hiddens = prev_hiddens[torch.arange(len(prev_intermediate_layer)), prev_intermediate_layer]
 
     forward_modifiers = [
