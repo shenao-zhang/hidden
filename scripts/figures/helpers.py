@@ -51,10 +51,7 @@ def extract_accuracies(results):
                 "bl": task_results["baseline_accuracy"],
                 "icl": task_results["icl_accuracy"],
                 "tv": task_results["tv_accuracy"],
-                "stack_tv_accuracy": task_results["stack_tv_accuracy"],
-                "second_tv_accuracy": task_results["second_tv_accuracy"],
-                "third_tv_accuracy": task_results["third_tv_accuracy"],
-                "fourth_tv_accuracy": task_results["fourth_tv_accuracy"],
+                **{f"tv_{idx}": task_results[f"tv_accuracy_{idx}"] for idx in range(10)}
             }
 
     return accuracies
@@ -71,12 +68,10 @@ def create_accuracies_df(results):
             task_name = "_".join(task_full_name.split("_")[1:])
 
             data.append([model_name, task_type, task_name, "Baseline", task_acc["bl"]])
-            data.append([model_name, task_type, task_name, "Regular", task_acc["icl"]])
+            data.append([model_name, task_type, task_name, "ICL", task_acc["icl"]])
             data.append([model_name, task_type, task_name, "TV", task_acc["tv"]])
-            data.append([model_name, task_type, task_name, "Stack", task_acc["stack_tv_accuracy"]])
-            data.append([model_name, task_type, task_name, "Second_TV", task_acc["second_tv_accuracy"]])
-            data.append([model_name, task_type, task_name, "Third_TV", task_acc["third_tv_accuracy"]])
-            data.append([model_name, task_type, task_name, "Fourth_TV", task_acc["fourth_tv_accuracy"]])
+            for idx in range(10):
+                data.append([model_name, task_type, task_name, f"TV_{idx}", task_acc[f"tv_{idx}"]])
 
     df = pd.DataFrame(data, columns=["model", "task_type", "task_name", "method", "accuracy"])
 

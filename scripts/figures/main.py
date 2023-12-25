@@ -20,15 +20,15 @@ from scripts.figures.helpers import (
 
 
 def filter_tasks_with_low_icl_accuracy(grouped_accuracies_df, regular_accuracy_threshold=0.20):
-    mask = (grouped_accuracies_df["Regular"] - grouped_accuracies_df["Baseline"]) >= regular_accuracy_threshold
+    mask = (grouped_accuracies_df["ICL"] - grouped_accuracies_df["Baseline"]) >= regular_accuracy_threshold
     filtered_task_accuracies_df = grouped_accuracies_df[mask].copy()
 
     # print the excluded model,task pairs, Hypothesis by commas
     if not mask.all():
         print(
             "Excluded:",
-            grouped_accuracies_df[~mask][["model", "task_name", "Regular"]].apply(
-                lambda x: f"({x['model']}, {x['task_name']}): {x['Regular']:.2f}", axis=1
+            grouped_accuracies_df[~mask][["model", "task_name", "ICL"]].apply(
+                lambda x: f"({x['model']}, {x['task_name']}): {x['ICL']:.2f}", axis=1
             ),
         )
     print("Num excluded / total:", (~mask).sum(), "/", len(grouped_accuracies_df))
@@ -39,7 +39,8 @@ def filter_tasks_with_low_icl_accuracy(grouped_accuracies_df, regular_accuracy_t
 def plot_avg_accuracies_per_model(grouped_accuracies_df):
     filtered_task_accuracies_df = filter_tasks_with_low_icl_accuracy(grouped_accuracies_df)
 
-    columns_to_plot = ["Regular", "TV", "Second_TV", "Third_TV", "Fourth_TV"]
+    columns_to_plot = ["ICL", "TV"] + [f"TV_{idx}" for idx in range(10)]
+    colors = ["blue", "green", "purple", "cyan", "yellow", "grey", "red", "pink", "darkorange", "tan", "lime", "teal", "peru"]
 
     # Calculate average accuracy and std deviation for each model
     df_agg = filtered_task_accuracies_df.groupby("model")[columns_to_plot].agg("mean")
@@ -56,7 +57,7 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
     fig, ax = plt.subplots(figsize=(6, 6))
 
     bar_width = 0.3
-    hatches = ["/", "\\", "|", "/", "\\", "|", "/", "\\", "|", "/", "\\"]
+    hatches = ["/", "\\", "|", "/", "\\", "|", "/", "\\", "|", "/", "\\", "|", "/", "\\"]
     for j, column in enumerate(columns_to_plot):
         means = df_agg[column]
         y_positions = np.arange(len(means)) + (j - 1) * bar_width
@@ -66,7 +67,7 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
             means,
             height=bar_width,
             capsize=2,
-            color=["blue", "green", "purple", "cyan", "yellow", "grey", "red"][j],
+            color=colors[j],
             edgecolor="white",
             hatch=hatches[j] * 2,
         )
@@ -81,11 +82,7 @@ def plot_avg_accuracies_per_model(grouped_accuracies_df):
 
     # show legend below the plot
     legend_elements = [
-        Patch(facecolor="blue", edgecolor="white", hatch=hatches[1] * 2, label="ICL"),
-        Patch(facecolor="green", edgecolor="white", hatch=hatches[2] * 2, label="TV"),
-        Patch(facecolor="purple", edgecolor="white", hatch=hatches[3] * 2, label="Second_TV"),
-        Patch(facecolor="cyan", edgecolor="white", hatch=hatches[4] * 2, label="Third_TV"),
-        Patch(facecolor="yellow", edgecolor="white", hatch=hatches[5] * 2, label="Fourth_TV")
+        Patch(facecolor=colors[i], edgecolor="white", hatch=hatches[i] * 2, label=name) for i, name in enumerate(columns_to_plot)
     ]
     ax.legend(handles=legend_elements, loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=3)
 
@@ -312,5 +309,5 @@ def create_all_figures(experiment_id: str):
 
 
 if __name__ == "__main__":
-    experiment_id = "10"
+    experiment_id = "12"
     create_all_figures(experiment_id)
