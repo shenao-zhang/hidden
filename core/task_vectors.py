@@ -24,15 +24,14 @@ from core.utils.nested import nested_apply
 def run_icl(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
-    task: Task,
-    test_datasets: List[FewShotDataset],
+    train_datasets: List[FewShotDataset],
     include_train: bool = True,
 ) -> List[str]:
     format_dataset_kwargs = {"include_train": include_train}
-    inputs = tokenize_datasets(tokenizer, test_datasets, format_dataset_kwargs=format_dataset_kwargs)
+    inputs = tokenize_datasets(tokenizer, train_datasets, format_dataset_kwargs=format_dataset_kwargs)
     new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": 1})
     predictions = decode_predictions(new_ids, tokenizer)
-
+    print(predictions)
     return predictions
 
 
@@ -212,8 +211,7 @@ def get_single_context_task_hiddens(
 
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs)
-    print('why', outputs)
-
+    print(decode_predictions(outputs, tokenizer))
     task_hiddens = forward_trace.residual_stream.hidden[:, :, -1, :]
     _, num_layers, hidden_size = task_hiddens.shape
     task_hiddens = task_hiddens.view(len(datasets), num_test_inputs_to_avg, num_layers, hidden_size).mean(dim=1)

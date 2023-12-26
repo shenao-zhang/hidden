@@ -49,6 +49,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer):
     task_name = TASKS_TO_EVALUATE[0]
     task = get_task_by_name(tokenizer=tokenizer, task_name=task_name)
     train_datasets = [task.create_dataset(train_data, test_data)]
+    predictions = run_icl(model, tokenizer, baseline_datasets, include_train=False)
   #  dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
    # icl_predictions = run_icl(model, tokenizer, task, train_datasets)
     tv_predictions, task_hiddens, tv_stack_predictions_list = run_stack_task_vector(
