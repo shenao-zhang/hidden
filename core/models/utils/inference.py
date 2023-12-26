@@ -162,8 +162,8 @@ def batch_generate(
         generate_ids.append(batch_ids)
 
     generate_ids = torch.cat(generate_ids, dim=0)
-
-    new_ids = generate_ids[:, inputs[input_type].shape[1] :]
+    new_ids = generate_ids
+  #  new_ids = generate_ids[:, inputs[input_type].shape[1] :]
 
     # outs = tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)
     # completions = [out[len(prompt) :] for out, prompt in zip(outs, prompts)]
