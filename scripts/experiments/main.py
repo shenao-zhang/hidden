@@ -46,8 +46,9 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer):
     # TODO: Change back to 400, 100
     #num_test_datasets, num_dev_datasets = 50, 50
     num_test_datasets, num_dev_datasets = 1, 1
-
-    train_datasets = task.create_datasets(train_data, test_data, 0)
+    task_name = TASKS_TO_EVALUATE[0]
+    task = get_task_by_name(tokenizer=tokenizer, task_name=task_name)
+    train_datasets = task.create_datasets(train_data, test_data)
   #  dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
    # icl_predictions = run_icl(model, tokenizer, task, train_datasets)
     tv_predictions, task_hiddens, tv_stack_predictions_list = run_stack_task_vector(

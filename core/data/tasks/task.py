@@ -37,7 +37,7 @@ class Task(ABC):
     def create_datasets(self, num_datasets: int, num_examples: int) -> List[FewShotDataset]:
         return [self.create_dataset(num_examples) for _ in range(num_datasets)]
 
-    def create_dataset(self, train_data: Any = None, test_data: Any = None, train_idx: int = 0) -> FewShotDataset:
+    def create_dataset(self, train_data: Any = None, test_data: Any = None) -> FewShotDataset:
 #        if test_input is None:
 #            test_input = self.sample_inputs(1)[0]
 #        test_output = self.calc_test_output(test_input)
@@ -45,8 +45,8 @@ class Task(ABC):
         test_output = test_data[0]['conversations'][1]
         print('test input: ', test_input)
         print('test output: ', test_output)
-        train_inputs = [train_data[train_idx]['conversations'][0]]
-        train_outputs = [train_data[train_idx]['conversations'][1]]
+        train_inputs = [train_data[train_idx]['conversations'][0] for train_idx in range(len(train_data))]
+        train_outputs = [train_data[train_idx]['conversations'][1] for train_idx in range(len(train_data))]
        # train_inputs = self.sample_inputs(num_examples, exclude=[test_input])
        # train_outputs = [self.calc_output(x) for x in train_inputs]
 
