@@ -103,7 +103,7 @@ def stack_helper(
         task,
         test_datasets,
         task_hiddens=new_task_hiddens,
-        intermediate_layer=best_intermediate_layer + 1,
+        intermediate_layer=best_intermediate_layer,
         #      include_train=True
     )
     return new_task_hiddens, stack_predictions
