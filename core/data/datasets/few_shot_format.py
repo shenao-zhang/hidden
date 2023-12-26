@@ -26,17 +26,17 @@ class FewShotFormat:
         else:
             return self.test_example_format.format(input=inp)
 
-    def format_datasets(self, datasets: List[FewShotDataset], **kwargs) -> List[str]:
-        return [self.format_dataset(dataset, **kwargs) for dataset in datasets]
+    def format_datasets(self, datasets: List[FewShotDataset], train_idx: int = 0, **kwargs) -> List[str]:
+        return [self.format_dataset(dataset, **kwargs, train_idx=train_idx) for dataset in datasets]
 
-    def format_dataset(self, dataset: FewShotDataset, include_train: bool = True, include_test: bool = True) -> str:
+    def format_dataset(self, dataset: FewShotDataset, include_train: bool = True, include_test: bool = True, train_idx: int = 0) -> str:
         base_prompt = ""
         if self.task_description is not None:
             base_prompt += f"{self.task_description}{self.example_separator}"
 
         if len(dataset.train_inputs) > 0:
             train_examples = [
-                self.format_train_example(x, y) for x, y in zip(dataset.train_inputs, dataset.train_outputs)
+                self.format_train_example(x, y) for x, y in zip(dataset.train_inputs[train_idx], dataset.train_outputs[train_idx])
             ]
             train_examples_prompt = self.example_separator.join(train_examples)
             train_examples_prompt += self.example_separator

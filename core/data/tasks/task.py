@@ -37,18 +37,23 @@ class Task(ABC):
     def create_datasets(self, num_datasets: int, num_examples: int) -> List[FewShotDataset]:
         return [self.create_dataset(num_examples) for _ in range(num_datasets)]
 
-    def create_dataset(self, num_examples: int, test_input: Optional[Any] = None) -> FewShotDataset:
-        if test_input is None:
-            test_input = self.sample_inputs(1)[0]
-        test_output = self.calc_test_output(test_input)
+    def create_dataset(self, train_data: Any = None, test_data: Any = None, train_idx: int = 0) -> FewShotDataset:
+#        if test_input is None:
+#            test_input = self.sample_inputs(1)[0]
+#        test_output = self.calc_test_output(test_input)
+        test_input = test_data[0]['conversations'][0]
+        test_output = test_data[0]['conversations'][1]
+        print('test input: ', test_input)
+        print('test output: ', test_output)
+        train_inputs = [train_data[train_idx]['conversations'][0]]
+        train_outputs = [train_data[train_idx]['conversations'][1]]
+       # train_inputs = self.sample_inputs(num_examples, exclude=[test_input])
+       # train_outputs = [self.calc_output(x) for x in train_inputs]
 
-        train_inputs = self.sample_inputs(num_examples, exclude=[test_input])
-        train_outputs = [self.calc_output(x) for x in train_inputs]
-
-        train_inputs = [str(x) for x in train_inputs]
-        train_outputs = [str(x) for x in train_outputs]
-        test_input = str(test_input)
-        test_output = str(test_output)
+    #    train_inputs = [str(x) for x in train_inputs]
+    #    train_outputs = [str(x) for x in train_outputs]
+      #  test_input = str(test_input)
+      #  test_output = str(test_output)
 
         return FewShotDataset(
             train_inputs,

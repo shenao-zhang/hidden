@@ -186,10 +186,11 @@ def tokenize_prompts(tokenizer: PreTrainedTokenizer, prompts: List[str]) -> torc
 def tokenize_datasets(
     tokenizer: PreTrainedTokenizer,
     datasets: List[FewShotDataset],
+    train_idx: int = 0,
     few_shot_format: FewShotFormat = FewShotFormat(),
     format_dataset_kwargs: Optional[dict] = {},
 ) -> torch.Tensor:
-    prompts = few_shot_format.format_datasets(datasets, **format_dataset_kwargs)
+    prompts = few_shot_format.format_datasets(datasets, train_idx, **format_dataset_kwargs)
     return tokenize_prompts(tokenizer, prompts)
 
 

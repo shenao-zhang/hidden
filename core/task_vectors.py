@@ -55,11 +55,10 @@ def run_task_vector(
     )
     best_intermediate_layer = int(max(dev_accuracy_by_layer, key=dev_accuracy_by_layer.get))
 
-    task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context)
+    task_hiddens = get_task_hiddens(model, tokenizer, test_datasets, multi_context=multi_context)
     predictions = modulated_generate(
         model,
         tokenizer,
-        task,
         test_datasets,
         task_hiddens=task_hiddens,
         intermediate_layer=best_intermediate_layer,
@@ -70,13 +69,13 @@ def run_task_vector(
 def stack_helper(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
-    task: Task,
-    test_datasets: List[FewShotDataset],
+    train_datasets: List[FewShotDataset],
     task_hiddens: torch.Tensor,
     multi_context: bool = False,
-    num_examples: int = 1,
-    best_intermediate_layer: int = 1
+    best_intermediate_layer: int = 1,
+    train_idx: int = 0
 ):
+    """
     new_ins = []
     new_outs = []
     for idx, dataset in enumerate(test_datasets):
@@ -94,14 +93,14 @@ def stack_helper(
         )
         for idx, dataset in enumerate(test_datasets)
     ]
-    new_task_hiddens = get_task_hiddens(model, tokenizer, task, new_test_datasets, multi_context=multi_context,
+    """
+    new_task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context,
                                         moderate=True, prev_hiddens=task_hiddens,
-                                        prev_intermediate_layer=best_intermediate_layer - 1) # -1
+                                        prev_intermediate_layer=best_intermediate_layer - 1, train_idx=train_idx) # -1
     stack_predictions = modulated_generate(
         model,
         tokenizer,
-        task,
-        test_datasets,
+        train_datasets,
         task_hiddens=new_task_hiddens,
         intermediate_layer=best_intermediate_layer,
         #      include_train=True
@@ -111,38 +110,26 @@ def stack_helper(
 def run_stack_task_vector(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
-    task: Task,
-    test_datasets: List[FewShotDataset],
-    dev_datasets: List[FewShotDataset],
-    layers_to_test: Optional[Iterable[int]] = None,
+    train_datasets: List[FewShotDataset],
     multi_context: bool = False,
-    num_examples: int = 1,
+    best_intermediate_layer: int = 1,
 ):
-    dev_accuracy_by_layer = task_vector_accuracy_by_layer(
-        model,
-        tokenizer,
-        task,
-        dev_datasets,
-        layers_to_test=layers_to_test,
-        multi_context=multi_context,
-    )
-    best_intermediate_layer = int(max(dev_accuracy_by_layer, key=dev_accuracy_by_layer.get))
-
-    task_hiddens = get_task_hiddens(model, tokenizer, task, test_datasets, multi_context=multi_context)
+    task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context)
     predictions = modulated_generate(
         model,
         tokenizer,
-        task,
-        test_datasets,
+        train_datasets,
         task_hiddens=task_hiddens,
         intermediate_layer=best_intermediate_layer,
     )
     stack_predictions_list = []
-    for _ in range(10):
-        task_hiddens, stack_predictions = stack_helper(model, tokenizer, task, test_datasets, task_hiddens,
-                                                       multi_context, num_examples, best_intermediate_layer)
+    print('0: ', predictions)
+    for train_idx in range(10):
+        task_hiddens, stack_predictions = stack_helper(model, tokenizer, train_datasets, task_hiddens, multi_context,
+                                                       best_intermediate_layer, train_idx)
         stack_predictions_list.append(stack_predictions)
-    return predictions, dev_accuracy_by_layer, task_hiddens, stack_predictions_list
+        print(f"{train_idx}: ", stack_predictions)
+    return predictions, task_hiddens, stack_predictions_list
 
 def run_overriding_task_vector(
     model: PreTrainedModel,
@@ -162,12 +149,11 @@ def run_overriding_task_vector(
     best_intermediate_layer = int(max(dev_accuracy_by_layer, key=dev_accuracy_by_layer.get))
 
     task_hiddens_datasets = test_datasets if overriding_datasets is None else overriding_datasets
-    task_hiddens = get_task_hiddens(model, tokenizer, task, task_hiddens_datasets)
+    task_hiddens = get_task_hiddens(model, tokenizer, task_hiddens_datasets)
 
     predictions = modulated_generate(
         model,
         tokenizer,
-        task,
         test_datasets,
         task_hiddens=task_hiddens,
         intermediate_layer=best_intermediate_layer,
@@ -205,10 +191,11 @@ def get_multi_context_task_hiddens(
 def get_single_context_task_hiddens(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
-    task: Task,
     datasets: List[FewShotDataset],
     num_test_inputs_to_avg: int = 1,  # 2
+    train_idx: int = 0
 ) -> torch.Tensor:
+    """
     new_datasets = [
         FewShotDataset(
             train_inputs=dataset.train_inputs,
@@ -219,8 +206,9 @@ def get_single_context_task_hiddens(
         for dataset in datasets
         for test_input in task.sample_inputs(num_test_inputs_to_avg, exclude=(dataset.test_input,))
     ]
+    """
 
-    inputs = tokenize_datasets(tokenizer, new_datasets)
+    inputs = tokenize_datasets(tokenizer, datasets, train_idx)
 
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs)
@@ -236,14 +224,15 @@ def get_single_context_task_hiddens(
 def stack_get_single_context_task_hiddens(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
-    task: Task,
     datasets: List[FewShotDataset],
     prev_hiddens,
     prev_intermediate_layer: Union[int, torch.Tensor] = 2,
     num_test_inputs_to_avg: int = 1,  # 2
+    train_idx: int = 0
 ) -> torch.Tensor:
    # for idx, train_in in enumerate(datasets[0].train_inputs):
    #     datasets[0].train_inputs[idx] = ' ' + train_in
+    """
     new_datasets = [
         FewShotDataset(
             train_inputs=dataset.train_inputs,
@@ -254,13 +243,13 @@ def stack_get_single_context_task_hiddens(
         for dataset in datasets
         for test_input in task.sample_inputs(num_test_inputs_to_avg, exclude=(dataset.test_input,))
     ]
-
-    inputs = tokenize_datasets(tokenizer, new_datasets)
+    """
+    inputs = tokenize_datasets(tokenizer, datasets, train_idx)
 
     # Stack hidden states
     if isinstance(prev_intermediate_layer, int):
         prev_intermediate_layer = torch.tensor(prev_intermediate_layer).repeat(len(inputs["input_ids"]))
-    injection_positions = -1 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
+    injection_positions = 0 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
     prev_hiddens = prev_hiddens[torch.arange(len(prev_intermediate_layer)), prev_intermediate_layer]
 
     forward_modifiers = [
@@ -286,26 +275,23 @@ def stack_get_single_context_task_hiddens(
 def get_task_hiddens(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
-    task: Task,
     datasets: List[FewShotDataset],
     multi_context: bool = False,
     moderate: bool = False,
     prev_hiddens=None,
-    prev_intermediate_layer=1
+    prev_intermediate_layer: int = 1,
+    train_idx: int = 1
 ) -> torch.Tensor:
     if moderate:
-        return stack_get_single_context_task_hiddens(model, tokenizer, task, datasets, prev_hiddens=prev_hiddens,
-                                                     prev_intermediate_layer=prev_intermediate_layer) # TODO
-    if multi_context:
-        return get_multi_context_task_hiddens(model, tokenizer, task, datasets)
-    else:
-        return get_single_context_task_hiddens(model, tokenizer, task, datasets)
+        return stack_get_single_context_task_hiddens(model, tokenizer, datasets, prev_hiddens=prev_hiddens,
+                                                     prev_intermediate_layer=prev_intermediate_layer, train_idx=train_idx)
+    if not multi_context:
+        return get_single_context_task_hiddens(model, tokenizer, datasets) # train_idx = 0
 
 
 def modulated_generate(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
-    task: Task,
     test_datasets: List[FewShotDataset],
     task_hiddens: torch.tensor,
     intermediate_layer: Union[int, torch.Tensor],
@@ -382,7 +368,7 @@ def task_vector_accuracy_by_layer(
         layers_to_test = range(num_layers)
 
     # Get task hiddens
-    task_hiddens = get_task_hiddens(model, tokenizer, task, datasets, multi_context=multi_context, moderate=moderate,
+    task_hiddens = get_task_hiddens(model, tokenizer, datasets, multi_context=multi_context, moderate=moderate,
                                     prev_hiddens=prev_hiddens, prev_intermediate_layer=prev_intermediate_layer)
 
     # Get input past_key_values

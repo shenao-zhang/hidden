@@ -27,38 +27,40 @@ def get_results_file_path(model_type: str, model_variant: str, experiment_id: st
     return os.path.join(main_experiment_results_dir(experiment_id), f"{model_type}_{model_variant}.pkl")
 
 
-def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_name: str, num_examples: int):
+def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer):
     seed_everything(41)
     accuracies = {}
 
-    task = get_task_by_name(tokenizer=tokenizer, task_name=task_name)
+   # task = get_task_by_name(tokenizer=tokenizer, task_name=task_name)
+
+    train_data = load_dataset("GAIR/lima", split="train")
+    test_data = load_dataset("GAIR/lima", split="test")
 
     # Evaluate baseline
-    baseline_datasets = task.create_datasets(num_datasets=100, num_examples=0)
-    predictions = run_icl(model, tokenizer, task, baseline_datasets, include_train=False)
-    accuracies["baseline"] = calculate_accuracy_on_datasets(task, predictions, baseline_datasets)
+   # baseline_datasets = task.create_datasets(train_data, test_data, 0)
+   # predictions = run_icl(model, tokenizer, task, baseline_datasets, include_train=False)
+   # accuracies["baseline"] = calculate_accuracy_on_datasets(task, predictions, baseline_datasets)
 
     # Evaluate ICL and Task Vector
     # TODO: Change back to 400, 100
     #num_test_datasets, num_dev_datasets = 50, 50
-    num_test_datasets, num_dev_datasets = 80, 80
+    num_test_datasets, num_dev_datasets = 1, 1
 
-    test_datasets = task.create_datasets(num_datasets=num_test_datasets, num_examples=num_examples)
-    dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
-    icl_predictions = run_icl(model, tokenizer, task, test_datasets)
-    tv_predictions, tv_dev_accuracy_by_layer, task_hiddens, tv_stack_predictions_list = run_stack_task_vector(
+    train_datasets = task.create_datasets(train_data, test_data, 0)
+  #  dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
+   # icl_predictions = run_icl(model, tokenizer, task, train_datasets)
+    tv_predictions, task_hiddens, tv_stack_predictions_list = run_stack_task_vector(
         model,
         tokenizer,
-        task,
-        test_datasets,
-        dev_datasets,
-        num_examples=num_examples
+        train_datasets,
+        best_intermediate_layer=12  # TODO: search
     )
-    accuracies["tv_dev_by_layer"] = tv_dev_accuracy_by_layer
-    accuracies["icl"] = calculate_accuracy_on_datasets(task, icl_predictions, test_datasets)
-    accuracies["tv"] = calculate_accuracy_on_datasets(task, tv_predictions, test_datasets)
+    """
+   # accuracies["tv_dev_by_layer"] = tv_dev_accuracy_by_layer
+    accuracies["icl"] = calculate_accuracy_on_datasets(task, icl_predictions, train_datasets)
+    accuracies["tv"] = calculate_accuracy_on_datasets(task, tv_predictions, train_datasets)
     for idx, tv_stack_predictions in enumerate(tv_stack_predictions_list):
-        accuracies[f"tv_stack_{idx}"] = calculate_accuracy_on_datasets(task, tv_stack_predictions, test_datasets)
+        accuracies[f"tv_stack_{idx}"] = calculate_accuracy_on_datasets(task, tv_stack_predictions, train_datasets)
 
     tv_ordered_tokens_by_layer = {}
     try:
@@ -70,6 +72,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, task_n
         print("Error:", e)
 
     return accuracies, tv_ordered_tokens_by_layer
+    """
 
 
 def run_main_experiment(
@@ -96,10 +99,11 @@ def run_main_experiment(
     if model is None or tokenizer is None:
         model, tokenizer = load_model_and_tokenizer(model_type, model_variant)
     print("Loaded model and tokenizer.")
-
+    evaluate_task(model, tokenizer)
+    """
     tasks = get_all_tasks(tokenizer=tokenizer)
 
-    num_examples = 3
+    num_examples = 1
 
     for i, task_name in enumerate(TASKS_TO_EVALUATE):
         task = tasks[task_name]
@@ -136,7 +140,7 @@ def run_main_experiment(
 
         with open(results_file, "wb") as f:
             pickle.dump(results, f)
-
+    """
 
 def get_new_experiment_id() -> str:
     return str(
