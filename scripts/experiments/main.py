@@ -1,5 +1,6 @@
 # This must be first
 from dotenv import load_dotenv
+from datasets import load_dataset, get_dataset_split_names
 
 load_dotenv(".env")
 
