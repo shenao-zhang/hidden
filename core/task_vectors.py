@@ -212,6 +212,7 @@ def get_single_context_task_hiddens(
 
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs)
+    print('why', outputs)
 
     task_hiddens = forward_trace.residual_stream.hidden[:, :, -1, :]
     _, num_layers, hidden_size = task_hiddens.shape
@@ -384,7 +385,6 @@ def task_vector_accuracy_by_layer(
         answers = modulated_generate(
             model,
             tokenizer,
-            task,
             datasets,
             intermediate_layer=layer_num,
             task_hiddens=task_hiddens,
