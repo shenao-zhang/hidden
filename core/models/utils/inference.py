@@ -175,6 +175,7 @@ def decode_predictions(
     output_ids: torch.Tensor, tokenizer: PreTrainedTokenizer, few_shot_format: FewShotFormat = FewShotFormat()
 ) -> List[str]:
     new_tokens = tokenizer.batch_decode(output_ids, skip_special_tokens=True)
+    print("new_tokens", new_tokens)
     answers = [tokens.split(few_shot_format.example_separator)[0] for tokens in new_tokens]
     return answers
 
