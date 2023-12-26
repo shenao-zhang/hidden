@@ -211,7 +211,6 @@ def get_single_context_task_hiddens(
 
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs)
-    print("get_single_context_task_hiddens", decode_predictions(outputs, tokenizer))
     task_hiddens = forward_trace.residual_stream.hidden[:, :, -1, :]
     _, num_layers, hidden_size = task_hiddens.shape
     task_hiddens = task_hiddens.view(len(datasets), num_test_inputs_to_avg, num_layers, hidden_size).mean(dim=1)
