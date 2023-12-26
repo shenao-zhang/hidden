@@ -126,9 +126,9 @@ def run_stack_task_vector(
     print('0: ', predictions)
     for train_idx in range(10):
         task_hiddens, stack_predictions = stack_helper(model, tokenizer, train_datasets, task_hiddens, multi_context,
-                                                       best_intermediate_layer, train_idx)
+                                                       best_intermediate_layer, train_idx + 1)
         stack_predictions_list.append(stack_predictions)
-        print(f"{train_idx}: ", stack_predictions)
+        print(f"{train_idx + 1}: ", stack_predictions)
     return predictions, task_hiddens, stack_predictions_list
 
 def run_overriding_task_vector(
