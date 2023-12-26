@@ -42,7 +42,8 @@ class Task(ABC):
 #            test_input = self.sample_inputs(1)[0]
 #        test_output = self.calc_test_output(test_input)
         test_input = test_data[0]['conversations'][0]
-        test_output = test_data[0]['conversations'][1]
+        test_output = 'Todo'
+        #test_output = test_data[0]['conversations'][1]
         print('test input: ', test_input)
         print('test output: ', test_output)
         train_inputs = [train_data[train_idx]['conversations'][0] for train_idx in range(len(train_data))]
