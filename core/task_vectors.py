@@ -432,8 +432,8 @@ def continue_generation(
         )
     else:
         output_ids = full_input_ids
-    print('debug', output_ids)
-    new_ids = output_ids[:, inputs["input_ids"].shape[-1]:]
+#    new_ids = output_ids[:, inputs["input_ids"].shape[-1]:]
+    new_ids = output_ids
     answers = decode_predictions(new_ids, tokenizer)
 
     return answers
