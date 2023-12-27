@@ -31,7 +31,7 @@ def run_icl(
     inputs = tokenize_datasets(tokenizer, train_datasets, format_dataset_kwargs=format_dataset_kwargs)
     new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": max_new_tokens})
     predictions = decode_predictions(new_ids, tokenizer)
-    print("icl", predictions)
+    print("icl", include_train, predictions)
     return predictions
 
 
@@ -264,7 +264,7 @@ def stack_get_single_context_task_hiddens(
     ]
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs, forward_modifiers=forward_modifiers)
-    print('debug: ', datasets[0].train_inputs, 'zsa', datasets[0].train_outputs, 'syl', outputs)
+  #  print('debug: ', datasets[0].train_inputs, 'zsa', datasets[0].train_outputs, 'syl', outputs)
     task_hiddens = forward_trace.residual_stream.hidden[:, :, -1, :]
     _, num_layers, hidden_size = task_hiddens.shape
     task_hiddens = task_hiddens.view(len(datasets), num_test_inputs_to_avg, num_layers, hidden_size).mean(dim=1)
@@ -282,7 +282,7 @@ def get_task_hiddens(
     moderate: bool = False,
     prev_hiddens=None,
     prev_intermediate_layer: int = 1,
-    train_idx: int = 1
+    train_idx: int = 0
 ) -> torch.Tensor:
     if moderate:
         return stack_get_single_context_task_hiddens(model, tokenizer, datasets, prev_hiddens=prev_hiddens,
@@ -412,7 +412,7 @@ def continue_generation(
 
     new_input_ids = first_predicted_token_ids
     new_attention_mask = torch.ones_like(new_input_ids)
-    print(inputs["attention_mask"].size(), new_attention_mask.size())
+    #print(inputs["attention_mask"].size(), new_attention_mask.size())
     device = new_input_ids.device
     full_input_ids = torch.cat([inputs["input_ids"].to(device), new_input_ids], dim=-1)
     full_attention_mask = torch.cat([inputs["attention_mask"].to(device), new_attention_mask.to(device)], dim=-1)
@@ -432,8 +432,8 @@ def continue_generation(
         )
     else:
         output_ids = full_input_ids
-#    new_ids = output_ids[:, inputs["input_ids"].shape[-1]:]
-    new_ids = output_ids
+    new_ids = output_ids[:, inputs["input_ids"].shape[-1]:]
+#    new_ids = output_ids
     answers = decode_predictions(new_ids, tokenizer)
 
     return answers
