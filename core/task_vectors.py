@@ -410,10 +410,10 @@ def continue_generation(
 
     new_input_ids = first_predicted_token_ids
     new_attention_mask = torch.ones_like(new_input_ids)
-    print(new_attention_mask.size())
-
-    full_input_ids = torch.cat([inputs["input_ids"], new_input_ids], dim=-1)
-    full_attention_mask = torch.cat([inputs["attention_mask"], new_attention_mask], dim=-1)
+    print(inputs["attention_mask"].size(), new_attention_mask.size())
+    device = new_input_ids.device
+    full_input_ids = torch.cat([inputs["input_ids"].to(device), new_input_ids], dim=-1)
+    full_attention_mask = torch.cat([inputs["attention_mask"].to(device), new_attention_mask.to(device)], dim=-1)
 
     # full_input_ids = new_input_ids
     # full_attention_mask = new_attention_mask
