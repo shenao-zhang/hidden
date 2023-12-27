@@ -20,7 +20,7 @@ from core.models.utils.inference import (
 from core.models.utils.llm_layers import get_layers
 from core.utils.nested import nested_apply
 
-
+max_new_tokens = 300
 def run_icl(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
@@ -29,7 +29,7 @@ def run_icl(
 ) -> List[str]:
     format_dataset_kwargs = {"include_train": include_train}
     inputs = tokenize_datasets(tokenizer, train_datasets, format_dataset_kwargs=format_dataset_kwargs)
-    new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": 300})
+    new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": max_new_tokens})
     predictions = decode_predictions(new_ids, tokenizer)
     print("icl", predictions)
     return predictions
@@ -114,14 +114,16 @@ def run_stack_task_vector(
     best_intermediate_layer: int = 1,
 ):
     task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context)
-    predictions = modulated_generate(
+    predictions, outputs, inputs  = modulated_generate(
         model,
         tokenizer,
         train_datasets,
         task_hiddens=task_hiddens,
         intermediate_layer=best_intermediate_layer,
+        return_outputs=True
     )
     stack_predictions_list = []
+    predictions = continue_generation(mdoel, tokenizer, inputs, outputs)
     print('0: ', predictions)
     for train_idx in range(10):
         task_hiddens, stack_predictions = stack_helper(model, tokenizer, train_datasets, task_hiddens, multi_context,
@@ -294,7 +296,7 @@ def modulated_generate(
     task_hiddens: torch.tensor,
     intermediate_layer: Union[int, torch.Tensor],
     past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None,
-    return_task_hiddens: bool = False,
+    return_outputs: bool = False,
     include_train: bool = False,
 ) -> List[str]:
     inputs = tokenize_datasets(tokenizer, test_datasets, format_dataset_kwargs={"include_train": include_train})
@@ -309,8 +311,8 @@ def modulated_generate(
     first_predicted_token_ids = first_forward_outputs.logits[:, -1].argmax(dim=-1).unsqueeze(-1)
     answers = decode_predictions(first_predicted_token_ids, tokenizer)
 
-    if return_task_hiddens:
-        return answers, task_hiddens
+    if return_outputs:
+        return answers, first_forward_outputs, inputs
     return answers
 
 
@@ -400,7 +402,6 @@ def continue_generation(
     tokenizer: PreTrainedTokenizer,
     inputs: Dict,
     first_forward_outputs: CausalLMOutputWithPast,
-    test_datasets: List[FewShotDataset],
 ) -> List[str]:
     """
     Continue generation after the first token. This is currently not supported.
@@ -409,6 +410,7 @@ def continue_generation(
 
     new_input_ids = first_predicted_token_ids
     new_attention_mask = torch.ones_like(new_input_ids)
+    print(new_attention_mask.size())
 
     full_input_ids = torch.cat([inputs["input_ids"], new_input_ids], dim=-1)
     full_attention_mask = torch.cat([inputs["attention_mask"], new_attention_mask], dim=-1)
@@ -417,8 +419,6 @@ def continue_generation(
     # full_attention_mask = new_attention_mask
 
     past_key_values = first_forward_outputs.past_key_values
-
-    max_new_tokens = 1  # Right now we don't support multi-token outputs
 
     if max_new_tokens > 0:
         output_ids = model.generate(
@@ -431,7 +431,7 @@ def continue_generation(
     else:
         output_ids = full_input_ids
 
-    new_ids = output_ids[:, inputs["input_ids"].shape[-1] :]
+    new_ids = output_ids[:, inputs["input_ids"].shape[-1]:]
     answers = decode_predictions(new_ids, tokenizer)
 
     return answers
