@@ -96,14 +96,16 @@ def stack_helper(
     new_task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context,
                                         moderate=True, prev_hiddens=task_hiddens,
                                         prev_intermediate_layer=best_intermediate_layer - 1, train_idx=train_idx) # -1
-    stack_predictions = modulated_generate(
+    outputs, inputs = modulated_generate(
         model,
         tokenizer,
         train_datasets,
         task_hiddens=new_task_hiddens,
         intermediate_layer=best_intermediate_layer,
+        return_outputs=True
         #      include_train=True
     )
+    stack_predictions = continue_generation(model, tokenizer, inputs, outputs)
     return new_task_hiddens, stack_predictions
 
 def run_stack_task_vector(
@@ -114,7 +116,7 @@ def run_stack_task_vector(
     best_intermediate_layer: int = 1,
 ):
     task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context)
-    predictions, outputs, inputs  = modulated_generate(
+    outputs, inputs = modulated_generate(
         model,
         tokenizer,
         train_datasets,
@@ -312,7 +314,7 @@ def modulated_generate(
     answers = decode_predictions(first_predicted_token_ids, tokenizer)
 
     if return_outputs:
-        return answers, first_forward_outputs, inputs
+        return first_forward_outputs, inputs
     return answers
 
 
@@ -430,7 +432,7 @@ def continue_generation(
         )
     else:
         output_ids = full_input_ids
-
+    print('debug', output_ids)
     new_ids = output_ids[:, inputs["input_ids"].shape[-1]:]
     answers = decode_predictions(new_ids, tokenizer)
 
