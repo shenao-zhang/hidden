@@ -211,7 +211,7 @@ def get_single_context_task_hiddens(
     ]
     """
 
-    inputs = tokenize_datasets(tokenizer, datasets, train_idx, format_dataset_kwargs={"include_test": False})
+    inputs = tokenize_datasets(tokenizer, datasets, train_idx, format_dataset_kwargs={"include_test": True})
 
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs)
@@ -246,7 +246,7 @@ def stack_get_single_context_task_hiddens(
         for test_input in task.sample_inputs(num_test_inputs_to_avg, exclude=(dataset.test_input,))
     ]
     """
-    inputs = tokenize_datasets(tokenizer, datasets, train_idx, format_dataset_kwargs={"include_test": False})
+    inputs = tokenize_datasets(tokenizer, datasets, train_idx, format_dataset_kwargs={"include_test": True})
 
     # Stack hidden states
     if isinstance(prev_intermediate_layer, int):
