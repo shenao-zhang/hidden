@@ -20,7 +20,7 @@ from core.models.utils.inference import (
 from core.models.utils.llm_layers import get_layers
 from core.utils.nested import nested_apply
 
-max_new_tokens = 300
+max_new_tokens = 400
 def run_icl(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
@@ -251,7 +251,7 @@ def stack_get_single_context_task_hiddens(
     # Stack hidden states
     if isinstance(prev_intermediate_layer, int):
         prev_intermediate_layer = torch.tensor(prev_intermediate_layer).repeat(len(inputs["input_ids"]))
-    injection_positions = -1 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
+    injection_positions = 0 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
     prev_hiddens = prev_hiddens[torch.arange(len(prev_intermediate_layer)), prev_intermediate_layer]
 
     forward_modifiers = [
@@ -264,7 +264,7 @@ def stack_get_single_context_task_hiddens(
     ]
     # TODO: replace traced forward with a regular forward and rely on huggingface's saved hidden states
     outputs, forward_trace = traced_forward(model, inputs=inputs, forward_modifiers=forward_modifiers)
-
+    print('debug: ', datasets[0].train_inputs, 'zsa', datasets[0].train_outputs, 'syl', outputs)
     task_hiddens = forward_trace.residual_stream.hidden[:, :, -1, :]
     _, num_layers, hidden_size = task_hiddens.shape
     task_hiddens = task_hiddens.view(len(datasets), num_test_inputs_to_avg, num_layers, hidden_size).mean(dim=1)
