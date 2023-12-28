@@ -50,5 +50,5 @@ class FewShotFormat:
             prompt += train_examples_prompt
         if include_test:
             prompt += test_example_prompt
-
+        print('promt', prompt)
         return prompt

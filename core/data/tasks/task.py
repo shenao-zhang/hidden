@@ -52,7 +52,6 @@ class Task(ABC):
         train_outputs = [train_data[train_idx]['conversations'][1] for train_idx in range(len(train_data))]
        # train_inputs = self.sample_inputs(num_examples, exclude=[test_input])
        # train_outputs = [self.calc_output(x) for x in train_inputs]
-
     #    train_inputs = [str(x) for x in train_inputs]
     #    train_outputs = [str(x) for x in train_outputs]
       #  test_input = str(test_input)
