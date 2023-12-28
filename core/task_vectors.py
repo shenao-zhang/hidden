@@ -215,7 +215,7 @@ def get_single_context_task_hiddens(
             train_inputs=dataset.train_inputs,
             train_outputs=dataset.train_outputs,
             test_input="How to write a poem?",
-            test_output=task.calc_output(test_input),
+            test_output="Placeholder",
         )
         for dataset in datasets
     ]
@@ -260,7 +260,7 @@ def stack_get_single_context_task_hiddens(
             train_inputs=dataset.train_inputs,
             train_outputs=dataset.train_outputs,
             test_input="How to write a poem?",
-            test_output=task.calc_output(test_input),
+            test_output="Placeholder",
         )
         for dataset in datasets
     ]
