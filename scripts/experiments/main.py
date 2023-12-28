@@ -50,7 +50,7 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer):
     task = get_task_by_name(tokenizer=tokenizer, task_name=task_name)
     train_datasets = [task.create_dataset(train_data, test_data)]
     run_icl(model, tokenizer, train_datasets, include_train=True)
-    run_icl(model, tokenizer, train_datasets, include_train=False)
+   # run_icl(model, tokenizer, train_datasets, include_train=False)
 
   #  dev_datasets = task.create_datasets(num_datasets=num_dev_datasets, num_examples=num_examples)
    # icl_predictions = run_icl(model, tokenizer, task, train_datasets)
