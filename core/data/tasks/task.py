@@ -43,10 +43,13 @@ class Task(ABC):
 #        test_output = self.calc_test_output(test_input)
       ##  test_input = test_data[1]['conversations'][0]
       #  test_input = 'How to make a shelf?'
-        test_input = test_data[1]['src']
-        test_output = 'Todo'
+        test_input = test_data[0]['src']
+        test_output = test_data[0]['tgt']
+       ## test_output = 'Todo'
         #test_output = test_data[0]['conversations'][1]
         print('test input: ', test_input)
+        print('test output: ', test_output)
+
         train_inputs = [train_data[train_idx]['src'] for train_idx in range(len(train_data))]
         train_outputs = [train_data[train_idx]['tgt'] for train_idx in range(len(train_data))]
       #  train_inputs = ["How to write a sentence?", "How to construct a paper?", "How to avoid a war?"]

@@ -48,7 +48,7 @@ class FewShotFormat:
         prompt = base_prompt
         if include_train:
             prompt += train_examples_prompt
-         #   print('promt', train_examples_prompt)
+            print('promt', train_examples_prompt)
         if include_test:
             prompt += test_example_prompt
         return prompt
