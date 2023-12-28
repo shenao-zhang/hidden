@@ -47,7 +47,7 @@ class Task(ABC):
         test_output = test_data[0]['tgt']
        ## test_output = 'Todo'
         #test_output = test_data[0]['conversations'][1]
-        print('test input: ', test_input)
+        print('test input: ', test_input, len(train_data))
         print('test output: ', test_output)
 
         train_inputs = [train_data[train_idx]['src'] for train_idx in range(len(train_data))]

@@ -28,7 +28,7 @@ def run_icl(
     include_train: bool = True,
 ) -> List[str]:
     format_dataset_kwargs = {"include_train": include_train}
-    inputs = tokenize_datasets(tokenizer, train_datasets, format_dataset_kwargs=format_dataset_kwargs)
+    inputs = tokenize_datasets(tokenizer, train_datasets, train_idx=42230, format_dataset_kwargs=format_dataset_kwargs)
     new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": max_new_tokens})
     predictions = decode_predictions(new_ids, tokenizer)
     print("icl", include_train, predictions)
@@ -115,7 +115,7 @@ def run_stack_task_vector(
     multi_context: bool = False,
     best_intermediate_layer: int = 1,
 ):
-    task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context)
+    task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context, train_idx=42230)
     outputs, inputs = modulated_generate(
         model,
         tokenizer,
@@ -127,7 +127,7 @@ def run_stack_task_vector(
     stack_predictions_list = []
     predictions = continue_generation(model, tokenizer, inputs, outputs)
     print('0: ', predictions)
-    for train_idx in range(42230,42235):
+    for train_idx in range(42231,42235):
         task_hiddens, stack_predictions = stack_helper(model, tokenizer, train_datasets, task_hiddens, multi_context,
                                                        best_intermediate_layer, train_idx + 1)
         stack_predictions_list.append(stack_predictions)
@@ -275,7 +275,7 @@ def stack_get_single_context_task_hiddens(
     # Stack hidden states
     if isinstance(prev_intermediate_layer, int):
         prev_intermediate_layer = torch.tensor(prev_intermediate_layer).repeat(len(inputs["input_ids"]))
-    injection_positions = -1 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
+    injection_positions = 0 * torch.ones_like(prev_intermediate_layer, dtype=torch.long)  # -1
     prev_hiddens = prev_hiddens[torch.arange(len(prev_intermediate_layer)), prev_intermediate_layer]
 
     forward_modifiers = [
@@ -312,7 +312,7 @@ def get_task_hiddens(
         return stack_get_single_context_task_hiddens(model, tokenizer, datasets, prev_hiddens=prev_hiddens,
                                                      prev_intermediate_layer=prev_intermediate_layer, train_idx=train_idx)
     if not multi_context:
-        return get_single_context_task_hiddens(model, tokenizer, datasets) # train_idx = 0
+        return get_single_context_task_hiddens(model, tokenizer, datasets, train_idx=train_idx)
 
 
 def modulated_generate(
