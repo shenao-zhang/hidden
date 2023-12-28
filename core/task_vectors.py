@@ -28,7 +28,7 @@ def run_icl(
     include_train: bool = True,
 ) -> List[str]:
     format_dataset_kwargs = {"include_train": include_train}
-    inputs = tokenize_datasets(tokenizer, train_datasets, train_idx=range(42231,42235), format_dataset_kwargs=format_dataset_kwargs)
+    inputs = tokenize_datasets(tokenizer, train_datasets, train_idx=42231, format_dataset_kwargs=format_dataset_kwargs)
     new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": max_new_tokens})
     predictions = decode_predictions(new_ids, tokenizer)
     print("icl", include_train, predictions)
