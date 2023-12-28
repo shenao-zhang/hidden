@@ -127,7 +127,7 @@ def run_stack_task_vector(
     stack_predictions_list = []
     predictions = continue_generation(model, tokenizer, inputs, outputs)
     print('0: ', predictions)
-    for train_idx in range(10,21):
+    for train_idx in range(10):
         task_hiddens, stack_predictions = stack_helper(model, tokenizer, train_datasets, task_hiddens, multi_context,
                                                        best_intermediate_layer, train_idx + 1)
         stack_predictions_list.append(stack_predictions)
@@ -214,7 +214,7 @@ def get_single_context_task_hiddens(
         FewShotDataset(
             train_inputs=dataset.train_inputs,
             train_outputs=dataset.train_outputs,
-            test_input="How to write a poem?",
+            test_input="Fix grammar errors in this sentence: However, the policy of engineering and industry cannot meet the needs.",
             test_output="Placeholder",
         )
         for dataset in datasets
@@ -259,7 +259,7 @@ def stack_get_single_context_task_hiddens(
         FewShotDataset(
             train_inputs=dataset.train_inputs,
             train_outputs=dataset.train_outputs,
-            test_input="How to write a poem?",
+            test_input="Fix grammar errors in this sentence: However, the policy of engineering and industry cannot meet the needs.",
             test_output="Placeholder",
         )
         for dataset in datasets

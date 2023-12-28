@@ -41,15 +41,19 @@ class Task(ABC):
 #        if test_input is None:
 #            test_input = self.sample_inputs(1)[0]
 #        test_output = self.calc_test_output(test_input)
-        test_input = test_data[1]['conversations'][0]
+      ##  test_input = test_data[1]['conversations'][0]
       #  test_input = 'How to make a shelf?'
+        test_input = test_data[1]['src']
         test_output = 'Todo'
         #test_output = test_data[0]['conversations'][1]
         print('test input: ', test_input)
+        train_inputs = [train_data[train_idx]['src'] for train_idx in range(len(train_data))]
+        train_outputs = [train_data[train_idx]['tgt'] for train_idx in range(len(train_data))]
       #  train_inputs = ["How to write a sentence?", "How to construct a paper?", "How to avoid a war?"]
       #  train_outputs = ["Write a sentence.", "Construct a paper.", "Avoid a war."]
-        train_inputs = [train_data[train_idx]['conversations'][0] for train_idx in range(len(train_data))]
-        train_outputs = [train_data[train_idx]['conversations'][1] for train_idx in range(len(train_data))]
+
+     ##   train_inputs = [train_data[train_idx]['conversations'][0] for train_idx in range(len(train_data))]
+     ##   train_outputs = [train_data[train_idx]['conversations'][1] for train_idx in range(len(train_data))]
        # train_inputs = self.sample_inputs(num_examples, exclude=[test_input])
        # train_outputs = [self.calc_output(x) for x in train_inputs]
     #    train_inputs = [str(x) for x in train_inputs]

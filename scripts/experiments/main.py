@@ -33,9 +33,11 @@ def evaluate_task(model: PreTrainedModel, tokenizer: PreTrainedTokenizer):
     accuracies = {}
 
    # task = get_task_by_name(tokenizer=tokenizer, task_name=task_name)
+    train_data = load_dataset("grammarly/coedit", split="train")
+    test_data = load_dataset("grammarly/coedit", split="validation")
 
-    train_data = load_dataset("GAIR/lima", split="train")
-    test_data = load_dataset("GAIR/lima", split="test")
+   # train_data = load_dataset("GAIR/lima", split="train")
+   # test_data = load_dataset("GAIR/lima", split="test")
 
     # Evaluate baseline
    # baseline_datasets = task.create_datasets(train_data, test_data, 0)
