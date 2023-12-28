@@ -28,7 +28,7 @@ def run_icl(
     include_train: bool = True,
 ) -> List[str]:
     format_dataset_kwargs = {"include_train": include_train}
-    inputs = tokenize_datasets(tokenizer, train_datasets, train_idx=42230, format_dataset_kwargs=format_dataset_kwargs)
+    inputs = tokenize_datasets(tokenizer, train_datasets, train_idx=42234, format_dataset_kwargs=format_dataset_kwargs)
     new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": max_new_tokens})
     predictions = decode_predictions(new_ids, tokenizer)
     print("icl", include_train, predictions)
@@ -115,7 +115,7 @@ def run_stack_task_vector(
     multi_context: bool = False,
     best_intermediate_layer: int = 1,
 ):
-    task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context, train_idx=42230)
+    task_hiddens = get_task_hiddens(model, tokenizer, train_datasets, multi_context=multi_context, train_idx=42234)
     outputs, inputs = modulated_generate(
         model,
         tokenizer,
@@ -127,12 +127,12 @@ def run_stack_task_vector(
     stack_predictions_list = []
     predictions = continue_generation(model, tokenizer, inputs, outputs)
     print('0: ', predictions)
-    for train_idx in range(42231,42235):
+    for train_idx in range(42231,42234):
         task_hiddens, stack_predictions = stack_helper(model, tokenizer, train_datasets, task_hiddens, multi_context,
                                                        best_intermediate_layer, train_idx + 1)
         stack_predictions_list.append(stack_predictions)
         print(f"{train_idx + 1}: ", stack_predictions)
-    for train_idx in range(42692,42695):
+    for train_idx in range(42690,42695):
         task_hiddens, stack_predictions = stack_helper(model, tokenizer, train_datasets, task_hiddens, multi_context,
                                                        best_intermediate_layer, train_idx + 1)
         stack_predictions_list.append(stack_predictions)
