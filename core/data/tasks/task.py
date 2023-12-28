@@ -41,7 +41,7 @@ class Task(ABC):
 #        if test_input is None:
 #            test_input = self.sample_inputs(1)[0]
 #        test_output = self.calc_test_output(test_input)
-        test_input = test_data[2]['conversations'][0]
+        test_input = test_data[1]['conversations'][0]
         test_output = 'Todo'
         #test_output = test_data[0]['conversations'][1]
         print('test input: ', test_input)
